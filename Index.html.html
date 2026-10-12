@@ -1,0 +1,3108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#7b1735">
+  <title>Udhār Book - Business Ledger & Billing</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            accent: 'var(--color-accent, #7b1735)',
+            'accent-light': 'var(--color-accent-light, #f8eff2)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --color-accent: #7b1735;
+      --color-accent-light: #fbeff2;
+      --app-font-size: 16px;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: var(--app-font-size);
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150,150,150,0.3); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150,150,150,0.5); }
+    
+    /* Toggle switch */
+    .switch-checkbox:checked {
+      right: 0;
+      border-color: var(--color-accent);
+      background-color: var(--color-accent);
+    }
+    .switch-checkbox:checked + .switch-label {
+      background-color: var(--color-accent);
+    }
+
+    /* Modal transition animations */
+    .modal-backdrop {
+      transition: opacity 0.25s ease-out;
+    }
+    .modal-content {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-900 dark:bg-stone-950 dark:text-stone-100 antialiased min-h-screen selection:bg-rose-200 selection:text-rose-900">
+
+<!-- AUTH SCREEN (Overlay when not logged in) -->
+<div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/80 backdrop-blur-md">
+  <div class="w-full max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-accent mb-3">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight">Udhār <span class="text-accent">Book</span></h1>
+      <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">Smart Ledger, Billing & Payment Tracker</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-xl mb-5 text-sm font-semibold">
+      <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg bg-white dark:bg-stone-700 shadow-sm transition">Login</button>
+      <button id="tabBtnSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-stone-500 dark:text-stone-400 hover:text-stone-800 transition">Create Account</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="formLogin" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Username</label>
+        <input id="loginUsername" type="text" required placeholder="e.g. farhan_store" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Password</label>
+        <div class="relative">
+          <input id="loginPassword" type="password" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+          <button type="button" onclick="togglePassView('loginPassword', this)" class="absolute right-3 top-2.5 text-stone-400 hover:text-stone-600 text-sm">👁</button>
+        </div>
+      </div>
+      <div id="loginError" class="text-xs text-red-500 font-medium min-h-[16px]"></div>
+      <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-white bg-accent hover:opacity-90 active:scale-[0.99] transition shadow-lg shadow-rose-900/20">Sign In</button>
+      <div class="text-center pt-2">
+        <button type="button" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-accent hover:underline">Forgot password?</button>
+      </div>
+    </form>
+
+    <!-- Sign Up Form -->
+    <form id="formSignup" onsubmit="handleSignup(event)" class="space-y-3 hidden">
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Business / Shop Name</label>
+        <input id="signupShop" type="text" required placeholder="e.g. City Supermarket" class="w-full px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Username</label>
+        <input id="signupUsername" type="text" required placeholder="Pick unique username" class="w-full px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Password</label>
+        <input id="signupPassword" type="password" required placeholder="Min. 4 characters" class="w-full px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Confirm Password</label>
+        <input id="signupConfirm" type="password" required placeholder="Repeat password" class="w-full px-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div id="signupError" class="text-xs text-red-500 font-medium min-h-[16px]"></div>
+      <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-white bg-accent hover:opacity-90 active:scale-[0.99] transition shadow-lg shadow-rose-900/20">Create Free Account</button>
+    </form>
+
+    <!-- Forgot Password Form -->
+    <form id="formForgot" onsubmit="handleResetPassword(event)" class="space-y-4 hidden">
+      <div class="text-sm text-stone-600 dark:text-stone-400">Enter your registered username and set a fresh security password.</div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">Username</label>
+        <input id="forgotUsername" type="text" required placeholder="Your username" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider mb-1">New Password</label>
+        <input id="forgotNewPass" type="password" required placeholder="Enter new password" class="w-full px-4 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/60 focus:ring-2 focus:ring-accent focus:outline-none transition">
+      </div>
+      <div id="forgotError" class="text-xs text-red-500 font-medium min-h-[16px]"></div>
+      <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-white bg-accent hover:opacity-90 transition">Update Password</button>
+      <div class="text-center pt-2">
+        <button type="button" onclick="switchAuthTab('login')" class="text-xs font-semibold text-stone-500 hover:text-stone-800">← Back to Login</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- APP LOCK SCREEN (PIN Security) -->
+<div id="lockScreen" class="fixed inset-0 z-50 hidden flex-col items-center justify-center p-6 bg-stone-900/90 backdrop-blur-xl text-white">
+  <div class="w-full max-w-sm bg-stone-800/90 border border-stone-700 rounded-3xl p-8 text-center shadow-2xl">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-3xl">
+      🔒
+    </div>
+    <h2 class="text-xl font-bold mb-1">App Locked</h2>
+    <p id="lockPromptText" class="text-xs text-stone-400 mb-6">Enter your security PIN to access the ledger</p>
+    
+    <div class="mb-4">
+      <input id="unlockPinInput" type="password" inputmode="numeric" maxlength="6" autofocus placeholder="••••" class="w-48 mx-auto text-center text-3xl tracking-[0.5em] font-mono py-2.5 px-4 bg-stone-900 border border-stone-600 rounded-2xl focus:border-accent focus:outline-none text-white">
+      <div id="unlockError" class="text-xs text-rose-400 mt-2 font-medium min-h-[16px]"></div>
+    </div>
+
+    <button onclick="submitUnlockPin()" class="w-full py-3 rounded-xl bg-accent text-white font-bold hover:opacity-95 active:scale-95 transition shadow-lg">
+      Unlock
+    </button>
+    <div class="mt-4">
+      <button type="button" onclick="openForgotLockModal()" class="text-xs text-stone-400 hover:text-white underline">Forgot App Lock PIN?</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset PIN modal -->
+<div id="forgotLockModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+  <div class="w-full max-w-sm bg-white dark:bg-stone-900 rounded-2xl p-6 border border-stone-200 dark:border-stone-800 shadow-2xl">
+    <h3 class="font-bold text-lg mb-2">Reset App Lock PIN</h3>
+    <p class="text-xs text-stone-500 dark:text-stone-400 mb-4">Confirm your account password to set a new security PIN.</p>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-xs font-semibold mb-1">Account Password</label>
+        <input id="forgotLockAcctPass" type="password" placeholder="Account Password" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold mb-1">New 4 or 6 Digit PIN</label>
+        <input id="forgotLockNewPin" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-mono tracking-widest text-center">
+      </div>
+      <div id="forgotLockError" class="text-xs text-rose-500 min-h-[16px]"></div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button onclick="closeModal('forgotLockModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-semibold text-sm">Cancel</button>
+      <button onclick="submitForgotLockPin()" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm">Set PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP WRAPPER -->
+<div id="appContainer" class="min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
+  
+  <!-- DESKTOP SIDEBAR -->
+  <aside class="hidden md:flex flex-col w-64 lg:w-72 border-r border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <div class="p-6 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-accent flex items-center justify-center font-bold text-xl shadow-sm">
+          ₹
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight block">Udhār <span class="text-accent">Book</span></span>
+          <span id="sidebarShopBadge" class="text-[11px] font-semibold text-stone-500 truncate block max-w-[130px]">My Store</span>
+        </div>
+      </div>
+      <button onclick="openModal('profileModal')" title="Edit Profile" class="p-2 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+      </button>
+    </div>
+
+    <!-- Quick Actions in Sidebar -->
+    <div class="p-4 grid grid-cols-2 gap-2">
+      <button onclick="openModal('addUdharModal')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-accent text-white font-semibold text-xs shadow-md shadow-rose-900/10 hover:opacity-95 active:scale-95 transition">
+        <span class="text-lg mb-1 leading-none">＋</span>
+        <span data-i18n="addUdhaar">Add Udhaar</span>
+      </button>
+      <button onclick="openModal('createBillModal')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 font-semibold text-xs transition">
+        <span class="text-lg mb-1 leading-none">🧾</span>
+        <span data-i18n="createBill">New Bill</span>
+      </button>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-3 space-y-1 text-sm font-medium">
+      <button onclick="switchView('home')" data-nav="home" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-accent bg-accent-light dark:bg-rose-950/40 font-bold">
+        <span class="text-lg">📊</span> <span data-i18n="navDashboard">Dashboard</span>
+      </button>
+      <button onclick="switchView('bills')" data-nav="bills" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">🧾</span> <span data-i18n="navBills">Bills & Invoices</span>
+      </button>
+      <button onclick="switchView('customers')" data-nav="customers" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">👥</span> <span data-i18n="navCustomers">Customers Ledger</span>
+      </button>
+      <button onclick="switchView('payments')" data-nav="payments" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">💸</span> <span data-i18n="navPayments">Payments & QR</span>
+      </button>
+      <button onclick="switchView('reports')" data-nav="reports" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">📈</span> <span data-i18n="navReports">Reports</span>
+      </button>
+      <button onclick="switchView('lists')" data-nav="lists" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">📋</span> <span data-i18n="navLists">Lists & Menus</span>
+      </button>
+      <button onclick="switchView('settings')" data-nav="settings" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        <span class="text-lg">⚙️</span> <span data-i18n="navSettings">Settings</span>
+      </button>
+    </nav>
+
+    <!-- User footer badge -->
+    <div class="p-4 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div id="desktopUserAvatar" class="w-9 h-9 rounded-full bg-accent text-white flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden">
+          U
+        </div>
+        <div class="min-w-0">
+          <p id="desktopUserName" class="text-xs font-bold truncate">Shop Owner</p>
+          <span id="desktopUserHandle" class="text-[10px] text-stone-400 block truncate">@username</span>
+        </div>
+      </div>
+      <button onclick="handleLogout()" title="Logout" class="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MOBILE TOP BAR -->
+  <header class="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-accent flex items-center justify-center font-bold text-base">
+        ₹
+      </div>
+      <div>
+        <h1 class="font-extrabold text-base leading-tight">Udhār <span class="text-accent">Book</span></h1>
+        <span id="mobileTopSub" class="text-[10px] text-stone-500 block leading-none">Smart Ledger</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="openModal('addUdharModal')" class="px-2.5 py-1.5 rounded-xl bg-accent text-white text-xs font-bold flex items-center gap-1 shadow-sm">
+        <span>＋</span> <span>Udhaar</span>
+      </button>
+      <button onclick="switchView('settings')" class="p-2 rounded-xl text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENT VIEWS CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+
+    <!-- VIEW: HOME (Dashboard) -->
+    <section id="view-home" class="view-panel space-y-6">
+      
+      <!-- Greeting Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl shadow-sm">
+        <div>
+          <span class="text-xs font-semibold text-stone-500 uppercase tracking-wider" data-i18n="welcomeBack">Welcome back</span>
+          <h2 id="homeProfileName" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-0.5">Your Business</h2>
+          <p class="text-xs text-stone-400 mt-1" id="dashTodayDate">Date loading...</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openModal('addUdharModal')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-accent text-white font-bold text-sm hover:opacity-95 shadow-md shadow-rose-900/15 flex items-center justify-center gap-1.5 transition">
+            <span>＋</span> <span data-i18n="addUdhaar">Add Udhaar</span>
+          </button>
+          <button onclick="openModal('createBillModal')" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 font-bold text-sm flex items-center justify-center gap-1.5 transition">
+            <span>🧾</span> <span data-i18n="createBill">Create Bill</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Financial Metric Cards (4 Grid) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Udhaar Given -->
+        <div class="bg-white dark:bg-stone-900 border-t-4 border-accent border-x border-b border-stone-200 dark:border-stone-800 p-4 sm:p-5 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider" data-i18n="totalUdhaar">Total Udhaar</div>
+          <div id="statTotalUdhaar" class="text-xl sm:text-2xl font-black mt-2 text-stone-900 dark:text-white">₹0</div>
+          <div class="text-[11px] text-stone-400 mt-1" data-i18n="totalGiven">Total credit given</div>
+        </div>
+
+        <!-- Received / Recovered -->
+        <div class="bg-white dark:bg-stone-900 border-t-4 border-emerald-600 border-x border-b border-stone-200 dark:border-stone-800 p-4 sm:p-5 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider" data-i18n="received">Received</div>
+          <div id="statReceived" class="text-xl sm:text-2xl font-black mt-2 text-emerald-600 dark:text-emerald-400">₹0</div>
+          <div class="text-[11px] text-stone-400 mt-1" data-i18n="moneyReceived">Money collected</div>
+        </div>
+
+        <!-- Pending Collection -->
+        <div class="bg-white dark:bg-stone-900 border-t-4 border-amber-500 border-x border-b border-stone-200 dark:border-stone-800 p-4 sm:p-5 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider" data-i18n="pending">Pending</div>
+          <div id="statPending" class="text-xl sm:text-2xl font-black mt-2 text-amber-500">₹0</div>
+          <div class="text-[11px] text-stone-400 mt-1" data-i18n="toCollect">Yet to collect</div>
+        </div>
+
+        <!-- Overdue -->
+        <div class="bg-white dark:bg-stone-900 border-t-4 border-red-600 border-x border-b border-stone-200 dark:border-stone-800 p-4 sm:p-5 rounded-2xl shadow-sm">
+          <div class="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider" data-i18n="overdue">Overdue</div>
+          <div id="statOverdue" class="text-xl sm:text-2xl font-black mt-2 text-red-600 dark:text-red-400">₹0</div>
+          <div class="text-[11px] text-stone-400 mt-1" data-i18n="duePassed">Past return date</div>
+        </div>
+      </div>
+
+      <!-- Attention Summary Counts -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-4 sm:p-5 rounded-2xl">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-3" data-i18n="attention">Customer Summary</h3>
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+          <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-xl">
+            <span id="badgePendingCount" class="block text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">0</span>
+            <span class="text-xs font-semibold text-stone-600 dark:text-stone-300" data-i18n="pendingCustomers">Pending</span>
+          </div>
+          <div class="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 rounded-xl">
+            <span id="badgeOverdueCount" class="block text-xl sm:text-2xl font-black text-red-600 dark:text-red-400">0</span>
+            <span class="text-xs font-semibold text-stone-600 dark:text-stone-300" data-i18n="overdueCustomers">Overdue</span>
+          </div>
+          <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-xl">
+            <span id="badgeCompletedCount" class="block text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0</span>
+            <span class="text-xs font-semibold text-stone-600 dark:text-stone-300" data-i18n="completed">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Udhaar Records on Dashboard -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-bold" data-i18n="records">Recent Records</h3>
+            <p class="text-xs text-stone-400">Latest transactions registered</p>
+          </div>
+          <button onclick="switchView('customers')" class="text-xs font-bold text-accent hover:underline" data-i18n="viewAll">View All →</button>
+        </div>
+        <div id="homeRecordsList" class="divide-y divide-stone-100 dark:divide-stone-800">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: BILLS & INVOICING -->
+    <section id="view-bills" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <div>
+          <h2 class="text-2xl font-extrabold" data-i18n="navBills">Bills & Invoices</h2>
+          <p class="text-xs text-stone-400">Create, manage, print and share itemized sales bills</p>
+        </div>
+        <button onclick="openModal('createBillModal')" class="px-4 py-2.5 rounded-xl bg-accent text-white font-bold text-sm hover:opacity-90 flex items-center justify-center gap-1.5 shadow-md">
+          <span>＋</span> <span data-i18n="createBill">New Bill</span>
+        </button>
+      </div>
+
+      <!-- Bills List -->
+      <div id="billsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- VIEW: CUSTOMERS LEDGER -->
+    <section id="view-customers" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <div>
+          <h2 class="text-2xl font-extrabold" data-i18n="customers">Customers Ledger</h2>
+          <p class="text-xs text-stone-400" data-i18n="customersSub">All customer balances and repayment histories</p>
+        </div>
+        <button onclick="openModal('addUdharModal')" class="px-4 py-2.5 rounded-xl bg-accent text-white font-bold text-sm hover:opacity-90 flex items-center justify-center gap-1.5 shadow-md">
+          <span>＋</span> <span data-i18n="addUdhaar">Add Udhaar</span>
+        </button>
+      </div>
+
+      <!-- Search & Status Filters -->
+      <div class="space-y-3">
+        <div class="relative">
+          <input id="customerSearchInput" oninput="renderCustomersList()" type="text" placeholder="Search customer name, phone, item..." class="w-full pl-11 pr-4 py-3 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-sm focus:ring-2 focus:ring-accent focus:outline-none transition">
+          <svg class="w-5 h-5 absolute left-4 top-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
+          <button onclick="setCustomerFilter('all', this)" class="customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-accent text-white transition whitespace-nowrap">All</button>
+          <button onclick="setCustomerFilter('pending', this)" class="customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 transition whitespace-nowrap">Pending</button>
+          <button onclick="setCustomerFilter('overdue', this)" class="customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 transition whitespace-nowrap">Overdue</button>
+          <button onclick="setCustomerFilter('completed', this)" class="customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 transition whitespace-nowrap">Completed</button>
+        </div>
+      </div>
+
+      <!-- Customers Records Table / Cards -->
+      <div id="customersContainer" class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl divide-y divide-stone-100 dark:divide-stone-800 shadow-sm overflow-hidden">
+        <!-- JS rendered -->
+      </div>
+    </section>
+
+    <!-- VIEW: PAYMENTS & UPI COLLECTION -->
+    <section id="view-payments" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <div>
+          <h2 class="text-2xl font-extrabold" data-i18n="payments">Payments & Collection</h2>
+          <p class="text-xs text-stone-400" data-i18n="paymentsSub">Collect money through QR code and record repayment credits</p>
+        </div>
+        <button onclick="openModal('recordPaymentModal')" class="px-4 py-2.5 rounded-xl bg-accent text-white font-bold text-sm hover:opacity-90 flex items-center justify-center gap-1.5 shadow-md">
+          <span>＋</span> <span data-i18n="recordPayment">Record Payment</span>
+        </button>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Left: Payment QR Card -->
+        <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-base" data-i18n="paymentCollection">Payment QR Code</h3>
+              <button onclick="openModal('qrSetupModal')" class="text-xs font-bold text-accent hover:underline">Edit QR</button>
+            </div>
+            
+            <!-- QR Display Box -->
+            <div id="paymentQrBox" class="p-6 rounded-2xl text-center bg-stone-50 dark:bg-stone-800/50 border border-dashed border-stone-300 dark:border-stone-700">
+              <!-- Dynamically populated or empty -->
+            </div>
+          </div>
+
+          <!-- Color palette swatches for QR theme -->
+          <div class="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800">
+            <span class="text-xs font-bold text-stone-500 block mb-2" data-i18n="paymentTheme">Card Accent Theme</span>
+            <div class="flex items-center gap-2">
+              <button onclick="setPaymentCardTheme('#7b1735')" class="w-7 h-7 rounded-full bg-[#7b1735] ring-2 ring-offset-2 ring-transparent focus:ring-accent"></button>
+              <button onclick="setPaymentCardTheme('#0f766e')" class="w-7 h-7 rounded-full bg-[#0f766e] ring-2 ring-offset-2 ring-transparent focus:ring-[#0f766e]"></button>
+              <button onclick="setPaymentCardTheme('#1d4ed8')" class="w-7 h-7 rounded-full bg-[#1d4ed8] ring-2 ring-offset-2 ring-transparent focus:ring-[#1d4ed8]"></button>
+              <button onclick="setPaymentCardTheme('#c2410c')" class="w-7 h-7 rounded-full bg-[#c2410c] ring-2 ring-offset-2 ring-transparent focus:ring-[#c2410c]"></button>
+              <button onclick="setPaymentCardTheme('#171717')" class="w-7 h-7 rounded-full bg-[#171717] ring-2 ring-offset-2 ring-transparent focus:ring-stone-600"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Recent Payment Records -->
+        <div class="lg:col-span-2 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-base" data-i18n="recentPayments">Recent Payments</h3>
+              <p class="text-xs text-stone-400">All recorded incoming cash or UPI repayments</p>
+            </div>
+            <span id="paymentsCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800">0 records</span>
+          </div>
+          <div id="paymentListContainer" class="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: REPORTS & ANALYTICS -->
+    <section id="view-reports" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <div>
+          <h2 class="text-2xl font-extrabold" data-i18n="reports">Business Reports</h2>
+          <p class="text-xs text-stone-400" data-i18n="reportsSub">Analyze revenue trends, profit estimations and collection health</p>
+        </div>
+        
+        <!-- Period Switcher: Day, Month, Year -->
+        <div class="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-xl text-xs font-bold">
+          <button onclick="setReportPeriod('day', this)" class="report-period-btn px-4 py-2 rounded-lg text-stone-500 hover:text-stone-900 dark:hover:text-white transition" data-i18n="day">Day</button>
+          <button onclick="setReportPeriod('month', this)" class="report-period-btn px-4 py-2 rounded-lg bg-white dark:bg-stone-700 shadow-sm text-accent transition" data-i18n="month">Month</button>
+          <button onclick="setReportPeriod('year', this)" class="report-period-btn px-4 py-2 rounded-lg text-stone-500 hover:text-stone-900 dark:hover:text-white transition" data-i18n="year">Year</button>
+        </div>
+      </div>
+
+      <!-- Top Summary Cards -->
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+          <span class="text-xs font-bold text-stone-400 uppercase tracking-wider" data-i18n="sales">Sales & Invoicing</span>
+          <div id="reportSalesVal" class="text-2xl font-black mt-2 text-stone-900 dark:text-white">₹0</div>
+          <span id="reportSalesCount" class="text-xs text-stone-400 mt-1 block">0 orders logged</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+          <span class="text-xs font-bold text-stone-400 uppercase tracking-wider" data-i18n="profit">Estimated Margin (20%)</span>
+          <div id="reportProfitVal" class="text-2xl font-black mt-2 text-emerald-600 dark:text-emerald-400">₹0</div>
+          <span class="text-xs text-emerald-500 mt-1 block font-semibold" data-i18n="estimated">Calculated profit</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+          <span class="text-xs font-bold text-stone-400 uppercase tracking-wider" data-i18n="received">Repayments Collected</span>
+          <div id="reportRecoveredVal" class="text-2xl font-black mt-2 text-blue-600 dark:text-blue-400">₹0</div>
+          <span id="reportRecoveredPercent" class="text-xs text-stone-400 mt-1 block">0% recovery</span>
+        </div>
+      </div>
+
+      <!-- Visual Trend Bar Chart -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-lg font-bold" data-i18n="salesTrend">Sales Performance Trend</h3>
+            <p class="text-xs text-stone-400">Visual breakdown across the selected timeline</p>
+          </div>
+          <span id="chartPeriodBadge" class="text-xs font-bold px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-full">This Month</span>
+        </div>
+        
+        <div id="salesChartBars" class="h-56 flex items-end gap-1.5 sm:gap-3 pt-6 pb-2 px-2 overflow-x-auto border-b border-stone-100 dark:border-stone-800 hide-scrollbar">
+          <!-- Bars rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: LISTS & MENU BUILDER -->
+    <section id="view-lists" class="view-panel space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <div>
+          <h2 class="text-2xl font-extrabold" data-i18n="lists">Lists & Menus</h2>
+          <p class="text-xs text-stone-400" data-i18n="listsSub">Organize shopping tasks, store inventory, or restaurant billing menus</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openModal('menuModal')" class="px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 font-bold text-xs flex items-center gap-1 transition">
+            <span>🍽️</span> <span data-i18n="addMenu">Add Menu</span>
+          </button>
+          <button onclick="openModal('listModal')" class="px-3.5 py-2.5 rounded-xl bg-accent text-white font-bold text-xs hover:opacity-90 flex items-center gap-1 shadow-md transition">
+            <span>＋</span> <span data-i18n="newList">New List</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Menus Section -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-stone-400 mb-3">Restaurant & Store Menus (For Fast Billing)</h3>
+        <div id="menusContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Task & Shopping Lists Section -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-stone-400 mb-3">Personal & Stock Checklists</h3>
+        <div id="listsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: SETTINGS & CUSTOMIZATION -->
+    <section id="view-settings" class="view-panel space-y-6 hidden">
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 p-5 rounded-3xl">
+        <h2 class="text-2xl font-extrabold" data-i18n="settings">Settings</h2>
+        <p class="text-xs text-stone-400" data-i18n="settingsSub">Customize theme, regional language, app lock security & backup</p>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-4 text-center sm:text-left flex-col sm:flex-row">
+          <div id="settingsProfilePic" class="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-accent font-extrabold text-2xl flex items-center justify-center overflow-hidden border border-rose-200 dark:border-rose-900">
+            👤
+          </div>
+          <div>
+            <h3 id="settingsProfileName" class="text-lg font-bold">Your Store</h3>
+            <p id="settingsProfileHandle" class="text-xs text-stone-400">@username</p>
+          </div>
+        </div>
+        <button onclick="openModal('profileModal')" class="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-xs font-bold transition">
+          Edit Profile
+        </button>
+      </div>
+
+      <!-- Appearance Group -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl divide-y divide-stone-100 dark:divide-stone-800 overflow-hidden shadow-sm">
+        <div class="p-4 bg-stone-50 dark:bg-stone-800/40 text-xs font-bold uppercase tracking-wider text-stone-500" data-i18n="appearance">
+          Appearance & Language
+        </div>
+
+        <!-- Language Picker -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="language">App Language</b>
+            <span id="currentLangLabel" class="text-xs text-stone-400">English</span>
+          </div>
+          <button onclick="openModal('languageModal')" class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold text-accent hover:bg-stone-50 dark:hover:bg-stone-800 transition">
+            Change
+          </button>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="darkMode">Dark Mode</b>
+            <span class="text-xs text-stone-400" data-i18n="darkSub">Comfortable on the eyes at night</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="themeDarkToggle" type="checkbox" onchange="toggleDarkMode(this.checked)" class="sr-only peer">
+            <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer dark:bg-stone-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+          </label>
+        </div>
+
+        <!-- Accent Color Picker -->
+        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <b class="text-sm block" data-i18n="colorPalette">Color Palette</b>
+            <span class="text-xs text-stone-400">Choose primary brand accent</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="changeThemeAccent('#7b1735')" class="w-7 h-7 rounded-full bg-[#7b1735] hover:scale-110 transition shadow-sm"></button>
+            <button onclick="changeThemeAccent('#1e40af')" class="w-7 h-7 rounded-full bg-[#1e40af] hover:scale-110 transition shadow-sm"></button>
+            <button onclick="changeThemeAccent('#166534')" class="w-7 h-7 rounded-full bg-[#166534] hover:scale-110 transition shadow-sm"></button>
+            <button onclick="changeThemeAccent('#7e22ce')" class="w-7 h-7 rounded-full bg-[#7e22ce] hover:scale-110 transition shadow-sm"></button>
+            <button onclick="changeThemeAccent('#c2410c')" class="w-7 h-7 rounded-full bg-[#c2410c] hover:scale-110 transition shadow-sm"></button>
+            <button onclick="changeThemeAccent('#18181b')" class="w-7 h-7 rounded-full bg-[#18181b] hover:scale-110 transition shadow-sm"></button>
+          </div>
+        </div>
+
+        <!-- Font Size Adjuster -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="fontSize">Text Size</b>
+            <span class="text-xs text-stone-400" data-i18n="fontSizeSub">Scale readable text across screens</span>
+          </div>
+          <select id="fontSizeSelect" onchange="adjustFontSize(this.value)" class="text-xs font-bold px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800">
+            <option value="14">Compact (14px)</option>
+            <option value="16" selected>Standard (16px)</option>
+            <option value="18">Large (18px)</option>
+            <option value="20">Extra Large (20px)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Security & Data Safety Group -->
+      <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl divide-y divide-stone-100 dark:divide-stone-800 overflow-hidden shadow-sm">
+        <div class="p-4 bg-stone-50 dark:bg-stone-800/40 text-xs font-bold uppercase tracking-wider text-stone-500" data-i18n="dataTools">
+          Security & Data Safety
+        </div>
+
+        <!-- App Lock PIN Setup -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="appLock">App Lock Security</b>
+            <span id="appLockStatusText" class="text-xs text-stone-400">PIN protection is off</span>
+          </div>
+          <button onclick="openModal('appLockSetupModal')" class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold text-accent hover:bg-stone-50 dark:hover:bg-stone-800 transition">
+            Configure PIN
+          </button>
+        </div>
+
+        <!-- Backup & Download -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="backup">Export Data Backup</b>
+            <span class="text-xs text-stone-400" data-i18n="backupSub">Save encrypted JSON file to your device</span>
+          </div>
+          <button onclick="exportJSONBackup()" class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold hover:bg-stone-50 dark:hover:bg-stone-800 transition">
+            Export JSON
+          </button>
+        </div>
+
+        <!-- Restore / Import -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block" data-i18n="restore">Restore Backup File</b>
+            <span class="text-xs text-stone-400" data-i18n="restoreSub">Load a previously exported backup file</span>
+          </div>
+          <div>
+            <button onclick="document.getElementById('fileImportInput').click()" class="px-3 py-1.5 rounded-xl border border-stone-200 dark:border-stone-700 text-xs font-bold hover:bg-stone-50 dark:hover:bg-stone-800 transition">
+              Import
+            </button>
+            <input id="fileImportInput" type="file" accept=".json" class="hidden" onchange="handleImportJSON(event)">
+          </div>
+        </div>
+
+        <!-- Clear Account Ledger Data -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block text-red-600" data-i18n="clearData">Clear Current Ledger</b>
+            <span class="text-xs text-stone-400" data-i18n="clearDataSub">Wipes records for this logged-in account</span>
+          </div>
+          <button onclick="clearCurrentLedgerData()" class="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/60 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition">
+            Reset Data
+          </button>
+        </div>
+
+        <!-- Logout Account -->
+        <div class="p-4 flex items-center justify-between">
+          <div>
+            <b class="text-sm block">Account Session</b>
+            <span id="sessionAccountLabel" class="text-xs text-stone-400">Logged in</span>
+          </div>
+          <button onclick="handleLogout()" class="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+            Logout
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE BOTTOM BAR NAVIGATION -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 grid grid-cols-6 py-2 px-1 text-center shadow-lg">
+    <button onclick="switchView('home')" data-mobnav="home" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-bold text-accent">
+      <span class="text-lg">📊</span>
+      <span>Home</span>
+    </button>
+    <button onclick="switchView('bills')" data-mobnav="bills" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500">
+      <span class="text-lg">🧾</span>
+      <span>Bills</span>
+    </button>
+    <button onclick="switchView('customers')" data-mobnav="customers" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500">
+      <span class="text-lg">👥</span>
+      <span>Ledger</span>
+    </button>
+    <button onclick="switchView('payments')" data-mobnav="payments" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500">
+      <span class="text-lg">💸</span>
+      <span>Pay</span>
+    </button>
+    <button onclick="switchView('reports')" data-mobnav="reports" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500">
+      <span class="text-lg">📈</span>
+      <span>Report</span>
+    </button>
+    <button onclick="switchView('lists')" data-mobnav="lists" class="mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500">
+      <span class="text-lg">📋</span>
+      <span>Lists</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- MODAL: ADD UDHAAR -->
+<div id="addUdharModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="addUdhaar">Add Udhaar (Credit)</h3>
+      <button onclick="closeModal('addUdharModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+    
+    <form onsubmit="saveNewUdhar(event)" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="customerName">Customer Name *</label>
+        <input id="udharCustName" type="text" required placeholder="Full Name" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="contact">Contact Number</label>
+          <input id="udharCustPhone" type="tel" maxlength="10" placeholder="10-digit Mobile" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Return Date</label>
+          <input id="udharReturnDate" type="date" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Customer Address (Optional)</label>
+        <input id="udharCustAddress" type="text" placeholder="Street / Area" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+
+      <!-- Menu Fast-Picker -->
+      <div class="p-3 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200 dark:border-stone-700 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-stone-600 dark:text-stone-300">Fast Menu Picker (Optional)</span>
+          <button type="button" onclick="loadMenusIntoPicker('udharMenuSelect')" class="text-[11px] font-bold text-accent">Refresh</button>
+        </div>
+        <select id="udharMenuSelect" onchange="renderUdharPickerItems(this.value)" class="w-full text-xs font-semibold p-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800">
+          <option value="">Select menu category to pick items</option>
+        </select>
+        <div id="udharMenuItemsList" class="max-h-36 overflow-y-auto space-y-1.5 text-xs">
+          <!-- Rendered items with checkboxes -->
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="item">Items Description *</label>
+          <input id="udharItemsDesc" type="text" required placeholder="e.g. Grocery bundle, Rice 5kg" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="amount">Total Amount (₹) *</label>
+          <input id="udharAmount" type="number" step="0.01" required placeholder="0.00" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-bold text-stone-900 dark:text-white">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-3">
+        <button type="button" onclick="closeModal('addUdharModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm shadow-md" data-i18n="save">Save Udhaar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: CREATE BILL -->
+<div id="createBillModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="createBill">Create Sale Invoice / Bill</h3>
+      <button onclick="closeModal('createBillModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="generateSaleBill(event)" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="customerName">Customer Name *</label>
+        <input id="billCustName" type="text" required placeholder="Customer Name" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="contact">Mobile Number</label>
+          <input id="billCustPhone" type="tel" maxlength="10" placeholder="Mobile Number" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Invoice Date</label>
+          <input id="billDateInput" type="date" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Address (Optional)</label>
+        <input id="billCustAddress" type="text" placeholder="Customer address" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+
+      <!-- Category selection for Menu -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Select Menu Category</label>
+        <select id="billMenuSelect" onchange="renderBillCategoryItems(this.value)" class="w-full text-xs font-semibold p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800">
+          <option value="">Select menu</option>
+        </select>
+      </div>
+
+      <!-- Item Checklist & Quantity -->
+      <div class="border border-stone-200 dark:border-stone-700 rounded-2xl p-3 bg-stone-50 dark:bg-stone-800/40">
+        <span class="text-xs font-bold text-stone-500 block mb-2">Select Items & Quantities</span>
+        <div id="billItemsChecklist" class="max-h-44 overflow-y-auto space-y-2 text-xs">
+          <p class="text-stone-400 text-center py-4">Select a menu category above or add menus under Lists.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between p-3 rounded-xl bg-stone-100 dark:bg-stone-800 font-bold">
+        <span>Invoice Total:</span>
+        <span id="billLiveTotalText" class="text-lg text-accent">₹0.00</span>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('createBillModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm shadow-md">Generate Bill</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: BILL PREVIEW & CANVAS EXPORT -->
+<div id="billPreviewModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/80 backdrop-blur-md overflow-y-auto">
+  <div class="w-full max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-base font-bold">Bill Preview</h3>
+      <button onclick="closeModal('billPreviewModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <!-- Render container for the bill card -->
+    <div id="billPrintCard" class="bg-white text-stone-900 p-5 rounded-2xl border border-stone-200 shadow-sm text-sm space-y-4">
+      <!-- Populated dynamically -->
+    </div>
+
+    <!-- Bill Actions -->
+    <div class="grid grid-cols-2 gap-2 mt-4">
+      <button onclick="downloadBillAsPNG()" class="py-2.5 px-3 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+        <span>⬇️</span> Download PNG
+      </button>
+      <button onclick="shareBillOnWhatsApp()" class="py-2.5 px-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm">
+        <span>💬</span> WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CUSTOMER LEDGER DETAIL -->
+<div id="customerDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-lg bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="recordDetails">Ledger Details</h3>
+      <button onclick="closeModal('customerDetailModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <div id="customerDetailBody" class="space-y-4">
+      <!-- Injected by openCustomerDetail -->
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RECORD PAYMENT -->
+<div id="recordPaymentModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="recordPayment">Record Payment</h3>
+      <button onclick="closeModal('recordPaymentModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSavePayment(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="customer">Select Customer *</label>
+        <select id="paymentCustSelect" required class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+          <!-- Populated with pending customers -->
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="paymentAmount">Amount Paid (₹) *</label>
+        <input id="paymentAmountInput" type="number" step="0.01" required min="0.01" placeholder="0.00" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm font-bold">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="paymentDate">Payment Date</label>
+        <input id="paymentDateInput" type="date" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('recordPaymentModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="savePayment">Save Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: APP LOCK SETUP -->
+<div id="appLockSetupModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="appLock">Configure App Lock</h3>
+      <button onclick="closeModal('appLockSetupModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSaveLockSettings(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="lockType">Lock Type</label>
+        <select id="lockTypeSelect" onchange="toggleLockTypeFields(this.value)" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+          <option value="off">Off (No Lock)</option>
+          <option value="pin4">4-Digit PIN</option>
+          <option value="pin6">6-Digit PIN</option>
+        </select>
+      </div>
+
+      <div id="lockPinInputsGroup" class="space-y-3 hidden">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Set PIN</label>
+          <input id="newLockPin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter PIN" class="w-full p-2.5 text-center font-mono tracking-widest rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Confirm PIN</label>
+          <input id="confirmLockPin" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN" class="w-full p-2.5 text-center font-mono tracking-widest rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('appLockSetupModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="savePlain">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: QR SETUP -->
+<div id="qrSetupModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="paymentCollection">Configure UPI & QR</h3>
+      <button onclick="closeModal('qrSetupModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSaveQR(event)" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="paymentName">Business Name on QR</label>
+        <input id="qrBizName" type="text" placeholder="e.g. Farhan Superstore" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="upiId">UPI ID *</label>
+        <input id="qrUpiId" type="text" required placeholder="name@bank or mobile@upi" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="qrCode">Upload QR Image</label>
+        <input id="qrFileInput" type="file" accept="image/*" onchange="handleQRFileSelect(event)" class="w-full text-xs file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-accent file:text-white">
+        <div id="qrUploadPreview" class="mt-2 text-center hidden">
+          <img id="qrUploadImgTag" src="" alt="QR" class="w-32 h-32 mx-auto object-contain rounded-xl border border-stone-200">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('qrSetupModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="savePlain">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: ADD / EDIT MENU -->
+<div id="menuModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="addMenu">Menu / Category</h3>
+      <button onclick="closeModal('menuModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSaveMenu(event)" class="space-y-3.5">
+      <input type="hidden" id="menuEditId">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="menuName">Category / Menu Name *</label>
+        <input id="menuCatName" type="text" required placeholder="e.g. Beverages, Fast Food, Spices" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold uppercase tracking-wider text-stone-500" data-i18n="menuItems">Items & Pricing</label>
+          <button type="button" onclick="appendMenuItemRow()" class="text-xs font-bold text-accent">+ Add Item</button>
+        </div>
+        <div id="menuItemsRowsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <!-- Dynamic row items -->
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('menuModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="savePlain">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: ADD / EDIT LIST -->
+<div id="listModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-md bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="newList">New Checklist</h3>
+      <button onclick="closeModal('listModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSaveList(event)" class="space-y-3.5">
+      <input type="hidden" id="listEditId">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="listName">List Title *</label>
+        <input id="listTitleInput" type="text" required placeholder="e.g. Wholesale Mart Shopping" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold uppercase tracking-wider text-stone-500" data-i18n="listItems">Tasks / Items</label>
+          <button type="button" onclick="appendChecklistItemRow()" class="text-xs font-bold text-accent">+ Add Entry</button>
+        </div>
+        <div id="checklistItemsRows" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <!-- Dynamic rows -->
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('listModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="createList">Save List</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: PROFILE & STORE NAME -->
+<div id="profileModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="profile">Store Profile</h3>
+      <button onclick="closeModal('profileModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <form onsubmit="handleSaveProfile(event)" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1" data-i18n="yourName">Store / Business Name</label>
+        <input id="profileStoreNameInput" type="text" required placeholder="e.g. Farhan General Store" class="w-full p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">Avatar Emoji or Letter</label>
+        <input id="profileAvatarInput" type="text" maxlength="2" placeholder="e.g. 🏪 or F" class="w-full p-2.5 text-center font-bold text-xl rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeModal('profileModal')" class="flex-1 py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 font-bold text-sm" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-sm" data-i18n="savePlain">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: LANGUAGE PICKER -->
+<div id="languageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-sm overflow-y-auto">
+  <div class="w-full max-w-sm bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6 shadow-2xl my-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-bold" data-i18n="chooseLanguage">Choose Language</h3>
+      <button onclick="closeModal('languageModal')" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+    </div>
+
+    <div id="languageGridList" class="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto p-1">
+      <!-- Injected by renderLanguages -->
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toastNotification" class="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-300 bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 px-4 py-2.5 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2">
+  <span id="toastIcon">✓</span>
+  <span id="toastMsg">Operation successful</span>
+</div>
+
+<script>
+/* ========================================================
+   GLOBAL STATE & DATA STRUCTURES
+======================================================== */
+const APP = {
+  currentUser: null,
+  activeView: 'home',
+  customerFilter: 'all',
+  reportPeriod: 'month',
+  state: {
+    records: [],
+    payments: [],
+    salesRecords: [],
+    lists: [],
+    menus: [],
+    profile: { name: 'My Business', avatar: '🏪' },
+    qr: { name: '', upi: '', image: '', theme: '#7b1735' },
+    lock: { type: 'off', pinHash: '' },
+    settings: { lang: 'en', darkMode: false, accent: '#7b1735', fontSize: '16' }
+  }
+};
+
+/* Multi-language vocabulary */
+const I18N = {
+  en: {
+    welcomeBack: "Welcome back",
+    addUdhaar: "Add Udhaar",
+    createBill: "Create Bill",
+    totalUdhaar: "Total Udhaar",
+    received: "Received",
+    pending: "Pending",
+    overdue: "Overdue",
+    totalGiven: "Total credit given",
+    moneyReceived: "Money collected",
+    toCollect: "Yet to collect",
+    duePassed: "Past return date",
+    attention: "Customer Summary",
+    pendingCustomers: "Pending",
+    overdueCustomers: "Overdue",
+    completed: "Completed",
+    records: "Recent Records",
+    viewAll: "View All",
+    navDashboard: "Dashboard",
+    navBills: "Bills & Invoices",
+    navCustomers: "Customers Ledger",
+    navPayments: "Payments & QR",
+    navReports: "Reports",
+    navLists: "Lists & Menus",
+    navSettings: "Settings",
+    customers: "Customers Ledger",
+    customersSub: "All customer balances and repayment histories",
+    payments: "Payments & Collection",
+    paymentsSub: "Collect money through QR code and record repayment credits",
+    recordPayment: "Record Payment",
+    paymentCollection: "Payment QR Code",
+    paymentTheme: "Card Accent Theme",
+    recentPayments: "Recent Payments",
+    reports: "Business Reports",
+    reportsSub: "Analyze revenue trends and collection health",
+    day: "Day", month: "Month", year: "Year",
+    sales: "Sales & Invoicing",
+    profit: "Estimated Margin",
+    estimated: "Calculated profit",
+    salesTrend: "Sales Performance Trend",
+    lists: "Lists & Menus",
+    listsSub: "Organize shopping tasks, store inventory, or restaurant billing menus",
+    addMenu: "Add Menu",
+    newList: "New List",
+    settings: "Settings",
+    settingsSub: "Customize theme, regional language, app lock security & backup",
+    appearance: "Appearance & Language",
+    language: "App Language",
+    darkMode: "Dark Mode",
+    darkSub: "Comfortable on the eyes at night",
+    colorPalette: "Color Palette",
+    fontSize: "Text Size",
+    fontSizeSub: "Scale readable text across screens",
+    dataTools: "Security & Data Safety",
+    appLock: "App Lock Security",
+    backup: "Export Data Backup",
+    backupSub: "Save encrypted JSON file to your device",
+    restore: "Restore Backup File",
+    restoreSub: "Load a previously exported backup file",
+    clearData: "Clear Current Ledger",
+    clearDataSub: "Wipes records for this logged-in account",
+    customerName: "Customer Name *",
+    contact: "Contact Number",
+    item: "Items Description *",
+    amount: "Total Amount (₹) *",
+    cancel: "Cancel",
+    save: "Save Udhaar",
+    savePlain: "Save",
+    savePayment: "Save Payment",
+    paymentAmount: "Amount Paid (₹) *",
+    paymentDate: "Payment Date",
+    customer: "Customer",
+    recordDetails: "Ledger Details",
+    chooseLanguage: "Choose Language"
+  },
+  hi: {
+    welcomeBack: "वापसी पर स्वागत",
+    addUdhaar: "उधार जोड़ें",
+    createBill: "बिल बनाएं",
+    totalUdhaar: "कुल उधार",
+    received: "प्राप्त राशि",
+    pending: "बाकी उधार",
+    overdue: "तारीख बीती",
+    totalGiven: "कुल दिया गया उधार",
+    moneyReceived: "जमा हुआ पैसा",
+    toCollect: "वसूल करना बाकी",
+    duePassed: "लौटाने की तारीख निकली",
+    attention: "खाते का सारांश",
+    pendingCustomers: "बाकी",
+    overdueCustomers: "देरी से",
+    completed: "पूर्ण",
+    records: "हालिया रिकॉर्ड",
+    viewAll: "सभी देखें",
+    navDashboard: "डैशबोर्ड",
+    navBills: "बिल और रसीदें",
+    navCustomers: "ग्राहक खाता",
+    navPayments: "भुगतान और QR",
+    navReports: "रिपोर्ट्स",
+    navLists: "लिस्ट और मेन्यू",
+    navSettings: "सेटिंग्स",
+    customers: "ग्राहक खाता बही",
+    customersSub: "सभी ग्राहकों का हिसाब और बकाया राशि",
+    payments: "भुगतान और कलेक्शन",
+    paymentsSub: "QR कोड से पेमेंट लें और जमा राशि दर्ज करें",
+    recordPayment: "भुगतान दर्ज करें",
+    paymentCollection: "भुगतान QR कोड",
+    paymentTheme: "कार्ड थीम",
+    recentPayments: "हालिया भुगतान",
+    reports: "बिज़नेस रिपोर्ट्स",
+    reportsSub: "बिक्री और रिकवरी का पूरा ब्योरा",
+    day: "दिन", month: "महीना", year: "साल",
+    sales: "बिक्री",
+    profit: "अनुमानित मुनाफा",
+    estimated: "अनुमानित मार्जिन",
+    salesTrend: "बिक्री ट्रेंड",
+    lists: "लिस्ट और मेन्यू",
+    listsSub: "खरीदारी और दुकान का मेन्यू बनाएं",
+    addMenu: "मेन्यू जोड़ें",
+    newList: "नई लिस्ट",
+    settings: "सेटिंग्स",
+    settingsSub: "भाषा, सुरक्षा और बैकअप बदलें",
+    appearance: "दिखावट और भाषा",
+    language: "ऐप की भाषा",
+    darkMode: "डार्क मोड",
+    darkSub: "रात में आंखों के लिए आरामदायक",
+    colorPalette: "रंग थीम",
+    fontSize: "फॉन्ट साइज",
+    fontSizeSub: "स्क्रीन पर टेक्स्ट का आकार",
+    dataTools: "सुरक्षा और डेटा",
+    appLock: "ऐप लॉक PIN",
+    backup: "डेटा बैकअप",
+    backupSub: "JSON फाइल डाउनलोड करें",
+    restore: "डेटा रिस्टोर",
+    restoreSub: "पुरानी फाइल से डेटा लोड करें",
+    clearData: "खाता साफ करें",
+    clearDataSub: "इस खाते का डेटा मिटाएं",
+    customerName: "ग्राहक का नाम *",
+    contact: "मोबाइल नंबर",
+    item: "सामान का विवरण *",
+    amount: "कुल राशि (₹) *",
+    cancel: "रद्द करें",
+    save: "उधार सेव करें",
+    savePlain: "सेव करें",
+    savePayment: "भुगतान सेव करें",
+    paymentAmount: "जमा राशि (₹) *",
+    paymentDate: "भुगतान की तारीख",
+    customer: "ग्राहक",
+    recordDetails: "खाता विवरण",
+    chooseLanguage: "भाषा चुनें"
+  },
+  bn: {
+    welcomeBack: "স্বাগতম",
+    addUdhaar: "বাকি যোগ করুন",
+    createBill: "বিল তৈরি করুন",
+    totalUdhaar: "মোট বাকি",
+    received: "আদায় হয়েছে",
+    pending: "বকেয়া",
+    overdue: "মেয়াদোত্তীর্ণ",
+    navDashboard: "ড্যাশবোর্ড",
+    navBills: "বিল",
+    navCustomers: "গ্রাহক খাতা",
+    navPayments: "পেমেন্ট",
+    navReports: "রিপোর্ট",
+    navLists: "তালিকা",
+    navSettings: "সেটিংস",
+    savePlain: "সংরক্ষণ",
+    cancel: "বাতিল"
+  },
+  mr: {
+    welcomeBack: "स्वागत आहे",
+    addUdhaar: "उधार जोडा",
+    createBill: "बिल बनवा",
+    totalUdhaar: "एकूण उधारी",
+    received: "प्राप्त रक्कम",
+    pending: "बाकी",
+    overdue: "मुदत संपलेली",
+    navDashboard: "डॅशबोर्ड",
+    navBills: "बिले",
+    navCustomers: "ग्राहक खाते",
+    navPayments: "पेमेंट",
+    navReports: "अहवाल",
+    navLists: "याद्या",
+    navSettings: "सेटिंग्ज",
+    savePlain: "जतन करा",
+    cancel: "रद्द करा"
+  },
+  ta: {
+    welcomeBack: "நல்வரவு",
+    addUdhaar: "கடன் சேர்க்க",
+    createBill: "பில் உருவாக்கு",
+    totalUdhaar: "மொத்த கடன்",
+    received: "பெறப்பட்டது",
+    pending: "நிலுவை",
+    overdue: "காலாவதியானது",
+    navDashboard: "முகப்பு",
+    navBills: "பில்கள்",
+    navCustomers: "வாடிக்கையாளர்",
+    navPayments: "பணம்",
+    navReports: "அறிக்கை",
+    navLists: "பட்டியல்கள்",
+    navSettings: "அமைப்புகள்",
+    savePlain: "சேமி",
+    cancel: "ரத்து"
+  },
+  te: {
+    welcomeBack: "స్వాగతం",
+    addUdhaar: "అప్పు నమోదు",
+    createBill: "బిల్లు చేయండి",
+    totalUdhaar: "మొత్తం అప్పు",
+    received: "వచ్చినవి",
+    pending: "బాకీ",
+    overdue: "గడువు దాటినది",
+    navDashboard: "డ్యాష్‌బోర్డ్",
+    navBills: "బిల్లులు",
+    navCustomers: "కస్టమర్లు",
+    navPayments: "చెల్లింపులు",
+    navReports: "నివేదికలు",
+    navLists: "జాబితాలు",
+    navSettings: "సెట్టింగులు",
+    savePlain: "సేవ్",
+    cancel: "రద్దు"
+  },
+  ml: {
+    welcomeBack: "സ്വാഗതം",
+    addUdhaar: "കടം ചേർക്കുക",
+    createBill: "ബിൽ ഉണ്ടാക്കുക",
+    totalUdhaar: "ആകെ കടം",
+    received: "ലഭിച്ചത്",
+    pending: "ബാക്കി",
+    overdue: "കാലാവധി കഴിഞ്ഞത്",
+    navDashboard: "ഡാഷ്‌ബോർഡ്",
+    navBills: "ബില്ലുകൾ",
+    navCustomers: "ഉപഭോക്താക്കൾ",
+    navPayments: "പണമിടപാട്",
+    navReports: "റിപ്പോർട്ടുകൾ",
+    navLists: "ലിസ്റ്റുകൾ",
+    navSettings: "ക്രമീകരണങ്ങൾ",
+    savePlain: "സേവ്",
+    cancel: "റദ്ദാക്കുക"
+  },
+  gu: {
+    welcomeBack: "સ્વાગત છે",
+    addUdhaar: "ઉધાર ઉમેરો",
+    createBill: "બિલ બનાવો",
+    totalUdhaar: "કુલ ઉધાર",
+    received: "મળેલ",
+    pending: "બાકી",
+    overdue: "મુદત વીતી ગયેલ",
+    navDashboard: "ડેશબોર્ડ",
+    navBills: "બિલ",
+    navCustomers: "ગ્રાહકો",
+    navPayments: "ચુકવણી",
+    navReports: "અહેવાલ",
+    navLists: "યાદી",
+    navSettings: "સેટિંગ્સ",
+    savePlain: "સાચવો",
+    cancel: "રદ કરો"
+  },
+  kn: {
+    welcomeBack: "ಸ್ವಾಗತ",
+    addUdhaar: "ಸಾಲ ಸೇರಿಸಿ",
+    createBill: "ಬಿಲ್ ರಚಿಸಿ",
+    totalUdhaar: "ಒಟ್ಟು ಸಾಲ",
+    received: "ಸ್ವೀಕರಿಸಿದ್ದು",
+    pending: "ಬಾಕಿ",
+    overdue: "ಅವಧಿ ಮೀರಿದ",
+    navDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    navBills: "ಬಿಲ್ಲುಗಳು",
+    navCustomers: "ಗ್ರಾಹಕರು",
+    navPayments: "ಪಾವತಿಗಳು",
+    navReports: "ವರದಿಗಳು",
+    navLists: "ಪಟ್ಟಿಗಳು",
+    navSettings: "ಸೆಟ್ಟಿಂಗ್ಸ್",
+    savePlain: "ಉಳಿಸಿ",
+    cancel: "ರದ್ದು"
+  },
+  pa: {
+    welcomeBack: "ਜੀ ਆਇਆਂ ਨੂੰ",
+    addUdhaar: "ਉਧਾਰ ਜੋੜੋ",
+    createBill: "ਬਿੱਲ ਬਣਾਓ",
+    totalUdhaar: "ਕੁੱਲ ਉਧਾਰ",
+    received: "ਵਸੂਲ ਕੀਤਾ",
+    pending: "ਬਕਾਇਆ",
+    overdue: "ਮਿਆਦ ਪੁੱਗੀ",
+    navDashboard: "ਡੈਸ਼ਬੋਰਡ",
+    navBills: "ਬਿੱਲ",
+    navCustomers: "ਗਾਹਕ",
+    navPayments: "ਭੁਗਤਾਨ",
+    navReports: "ਰਿਪੋਰਟਾਂ",
+    navLists: "ਸੂਚੀਆਂ",
+    navSettings: "ਸੈਟਿੰਗਾਂ",
+    savePlain: "ਸੰਭਾਲੋ",
+    cancel: "ਰੱਦ ਕਰੋ"
+  }
+};
+
+const LANG_OPTIONS = [
+  { code: 'en', name: 'English' },
+  { code: 'hi', name: 'हिन्दी (Hindi)' },
+  { code: 'bn', name: 'বাংলা (Bengali)' },
+  { code: 'mr', name: 'मराठी (Marathi)' },
+  { code: 'ta', name: 'தமிழ் (Tamil)' },
+  { code: 'te', name: 'తెలుగు (Telugu)' },
+  { code: 'ml', name: 'മലയാളം (Malayalam)' },
+  { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
+  { code: 'kn', name: 'ಕನ್ನಡ (Kannada)' },
+  { code: 'pa', name: 'ਪੰਜਾਬੀ (Punjabi)' }
+];
+
+/* ========================================================
+   ENCRYPTION / HASHING & UTILITIES
+======================================================== */
+function fastHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'h_' + Math.abs(hash);
+}
+
+function formatCurrency(n) {
+  return '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
+
+function getTodayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function showToast(msg, icon = '✓') {
+  const el = document.getElementById('toastNotification');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = icon;
+  el.classList.remove('opacity-0');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    el.classList.add('opacity-0');
+  }, 2300);
+}
+
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+  }
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+  }
+}
+
+/* ========================================================
+   AUTHENTICATION & STORAGE SUBSYSTEM
+======================================================== */
+function getAccountsDB() {
+  try {
+    return JSON.parse(localStorage.getItem('udhar_accounts_v1') || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveAccountsDB(db) {
+  localStorage.setItem('udhar_accounts_v1', JSON.stringify(db));
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('formLogin').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('formSignup').classList.toggle('hidden', tab !== 'signup');
+  document.getElementById('formForgot').classList.toggle('hidden', tab !== 'forgot');
+
+  const btnL = document.getElementById('tabBtnLogin');
+  const btnS = document.getElementById('tabBtnSignup');
+  if (tab === 'login') {
+    btnL.className = 'flex-1 py-2 rounded-lg bg-white dark:bg-stone-700 shadow-sm transition font-bold';
+    btnS.className = 'flex-1 py-2 rounded-lg text-stone-500 dark:text-stone-400 hover:text-stone-800 transition';
+  } else if (tab === 'signup') {
+    btnS.className = 'flex-1 py-2 rounded-lg bg-white dark:bg-stone-700 shadow-sm transition font-bold';
+    btnL.className = 'flex-1 py-2 rounded-lg text-stone-500 dark:text-stone-400 hover:text-stone-800 transition';
+  }
+}
+
+function togglePassView(id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.textContent = isPass ? '🙈' : '👁';
+}
+
+function handleSignup(e) {
+  e.preventDefault();
+  const shop = document.getElementById('signupShop').value.trim();
+  const username = document.getElementById('signupUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const pass = document.getElementById('signupPassword').value;
+  const conf = document.getElementById('signupConfirm').value;
+  const err = document.getElementById('signupError');
+
+  if (!username || !shop) { err.textContent = 'Please fill all fields.'; return; }
+  if (username.length < 3) { err.textContent = 'Username must be at least 3 chars.'; return; }
+  if (pass.length < 4) { err.textContent = 'Password must be at least 4 chars.'; return; }
+  if (pass !== conf) { err.textContent = 'Passwords do not match.'; return; }
+
+  const db = getAccountsDB();
+  if (db[username]) {
+    err.textContent = 'Username is already taken.';
+    return;
+  }
+
+  db[username] = {
+    username,
+    shopName: shop,
+    passHash: fastHash(pass),
+    createdAt: new Date().toISOString()
+  };
+  saveAccountsDB(db);
+
+  // Initialize fresh store state for this user
+  const initialUserState = {
+    records: [],
+    payments: [],
+    salesRecords: [],
+    lists: [
+      { id: 'l1', title: 'Daily Wholesale Need', items: [{ text: '50kg Flour', done: false }, { text: '20L Mustard Oil', done: true }] }
+    ],
+    menus: [
+      { id: 'm1', name: 'General Grocery', items: [{ name: 'Rice 5kg Bag', price: 290 }, { name: 'Cooking Oil 1L', price: 145 }, { name: 'Sugar 1kg', price: 44 }] }
+    ],
+    profile: { name: shop, avatar: shop.charAt(0).toUpperCase() },
+    qr: { name: shop, upi: '', image: '', theme: '#7b1735' },
+    lock: { type: 'off', pinHash: '' },
+    settings: { lang: 'en', darkMode: false, accent: '#7b1735', fontSize: '16' }
+  };
+  localStorage.setItem('udhar_data_' + username, JSON.stringify(initialUserState));
+
+  loginUser(username);
+  showToast('Account created successfully!');
+}
+
+function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('loginUsername').value.trim().toLowerCase();
+  const p = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+
+  const db = getAccountsDB();
+  if (!db[u]) {
+    err.textContent = 'Account not found. Please register.';
+    return;
+  }
+  if (db[u].passHash !== fastHash(p)) {
+    err.textContent = 'Incorrect password.';
+    return;
+  }
+
+  loginUser(u);
+}
+
+function handleResetPassword(e) {
+  e.preventDefault();
+  const u = document.getElementById('forgotUsername').value.trim().toLowerCase();
+  const p = document.getElementById('forgotNewPass').value;
+  const err = document.getElementById('forgotError');
+
+  const db = getAccountsDB();
+  if (!db[u]) {
+    err.textContent = 'Username not found.';
+    return;
+  }
+  if (p.length < 4) {
+    err.textContent = 'New password must be at least 4 characters.';
+    return;
+  }
+
+  db[u].passHash = fastHash(p);
+  saveAccountsDB(db);
+  showToast('Password updated! Please login.');
+  switchAuthTab('login');
+  document.getElementById('loginUsername').value = u;
+}
+
+function loginUser(username) {
+  APP.currentUser = username;
+  localStorage.setItem('udhar_active_user', username);
+  document.getElementById('authScreen').classList.add('hidden');
+
+  loadUserData(username);
+  applyUserPreferences();
+  renderAllViews();
+
+  // Check App Lock
+  if (APP.state.lock && APP.state.lock.type !== 'off' && APP.state.lock.pinHash) {
+    showAppLockScreen();
+  }
+}
+
+function loadUserData(username) {
+  try {
+    const raw = localStorage.getItem('udhar_data_' + username);
+    if (raw) {
+      APP.state = JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error('Failed to parse user store data', err);
+  }
+}
+
+function saveUserData() {
+  if (!APP.currentUser) return;
+  localStorage.setItem('udhar_data_' + APP.currentUser, JSON.stringify(APP.state));
+}
+
+function handleLogout() {
+  saveUserData();
+  localStorage.removeItem('udhar_active_user');
+  APP.currentUser = null;
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').textContent = '';
+  switchAuthTab('login');
+}
+</script>
+
+<script>
+/* ========================================================
+   APP LOCK PIN SECURITY
+======================================================== */
+function showAppLockScreen() {
+  const lock = document.getElementById('lockScreen');
+  const input = document.getElementById('unlockPinInput');
+  const prompt = document.getElementById('lockPromptText');
+  const digits = APP.state.lock.type === 'pin6' ? 6 : 4;
+
+  prompt.textContent = `Enter your ${digits}-digit security PIN to continue.`;
+  input.maxLength = digits;
+  input.value = '';
+  document.getElementById('unlockError').textContent = '';
+  lock.classList.remove('hidden');
+  lock.classList.add('flex');
+  setTimeout(() => input.focus(), 150);
+}
+
+function submitUnlockPin() {
+  const pin = document.getElementById('unlockPinInput').value.trim();
+  const err = document.getElementById('unlockError');
+
+  if (fastHash(pin) === APP.state.lock.pinHash) {
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('lockScreen').classList.remove('flex');
+  } else {
+    err.textContent = 'Incorrect PIN. Try again.';
+    document.getElementById('unlockPinInput').value = '';
+  }
+}
+
+document.getElementById('unlockPinInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitUnlockPin();
+});
+
+function openForgotLockModal() {
+  document.getElementById('forgotLockAcctPass').value = '';
+  document.getElementById('forgotLockNewPin').value = '';
+  document.getElementById('forgotLockError').textContent = '';
+  openModal('forgotLockModal');
+}
+
+function submitForgotLockPin() {
+  const pass = document.getElementById('forgotLockAcctPass').value;
+  const newPin = document.getElementById('forgotLockNewPin').value.trim();
+  const err = document.getElementById('forgotLockError');
+
+  const db = getAccountsDB();
+  const acc = db[APP.currentUser];
+  if (!acc || acc.passHash !== fastHash(pass)) {
+    err.textContent = 'Wrong account password.';
+    return;
+  }
+  if (![4, 6].includes(newPin.length) || !/^\d+$/.test(newPin)) {
+    err.textContent = 'PIN must be exactly 4 or 6 numeric digits.';
+    return;
+  }
+
+  APP.state.lock.type = newPin.length === 6 ? 'pin6' : 'pin4';
+  APP.state.lock.pinHash = fastHash(newPin);
+  saveUserData();
+  closeModal('forgotLockModal');
+  document.getElementById('lockScreen').classList.add('hidden');
+  document.getElementById('lockScreen').classList.remove('flex');
+  showToast('PIN successfully changed and unlocked!');
+  updateSettingsUI();
+}
+
+function toggleLockTypeFields(val) {
+  document.getElementById('lockPinInputsGroup').classList.toggle('hidden', val === 'off');
+}
+
+function handleSaveLockSettings(e) {
+  e.preventDefault();
+  const type = document.getElementById('lockTypeSelect').value;
+  if (type === 'off') {
+    APP.state.lock = { type: 'off', pinHash: '' };
+    saveUserData();
+    closeModal('appLockSetupModal');
+    updateSettingsUI();
+    showToast('App lock disabled');
+    return;
+  }
+
+  const p1 = document.getElementById('newLockPin').value.trim();
+  const p2 = document.getElementById('confirmLockPin').value.trim();
+  const reqLen = type === 'pin6' ? 6 : 4;
+
+  if (p1.length !== reqLen || !/^\d+$/.test(p1)) {
+    alert(`PIN must be ${reqLen} numeric digits.`);
+    return;
+  }
+  if (p1 !== p2) {
+    alert('PINs do not match.');
+    return;
+  }
+
+  APP.state.lock = { type, pinHash: fastHash(p1) };
+  saveUserData();
+  closeModal('appLockSetupModal');
+  updateSettingsUI();
+  showToast(`Security ${type.toUpperCase()} enabled!`);
+}
+
+/* ========================================================
+   VIEW NAVIGATION & RESPONSIVE ROUTING
+======================================================== */
+function switchView(viewName) {
+  APP.activeView = viewName;
+  document.querySelectorAll('.view-panel').forEach(panel => {
+    panel.classList.add('hidden');
+  });
+  const target = document.getElementById('view-' + viewName);
+  if (target) target.classList.remove('hidden');
+
+  // Update desktop sidebar states
+  document.querySelectorAll('.nav-item').forEach(item => {
+    const isCur = item.dataset.nav === viewName;
+    if (isCur) {
+      item.className = 'nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-accent bg-accent-light dark:bg-rose-950/40 font-bold';
+    } else {
+      item.className = 'nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 font-medium';
+    }
+  });
+
+  // Update mobile bottom bar states
+  document.querySelectorAll('.mobnav-btn').forEach(btn => {
+    const isCur = btn.dataset.mobnav === viewName;
+    btn.className = isCur 
+      ? 'mobnav-btn flex flex-col items-center justify-center text-[10px] font-bold text-accent'
+      : 'mobnav-btn flex flex-col items-center justify-center text-[10px] font-semibold text-stone-500';
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Refresh target view data
+  if (viewName === 'home') renderDashboard();
+  if (viewName === 'bills') renderBills();
+  if (viewName === 'customers') renderCustomersList();
+  if (viewName === 'payments') renderPaymentsSection();
+  if (viewName === 'reports') renderReports();
+  if (viewName === 'lists') renderListsAndMenus();
+}
+</script>
+
+<script>
+/* ========================================================
+   DASHBOARD & LEDGER BUSINESS LOGIC
+======================================================== */
+function getRecordStatus(record) {
+  const paid = Number(record.paid || 0);
+  const total = Number(record.amount || 0);
+  if (paid >= total) return 'completed';
+  if (record.returnDate && record.returnDate < getTodayISO()) return 'overdue';
+  return 'pending';
+}
+
+function calculateLedgerMetrics() {
+  let given = 0;
+  let received = 0;
+  let overdue = 0;
+
+  let pendingCount = 0;
+  let overdueCount = 0;
+  let completedCount = 0;
+
+  APP.state.records.forEach(r => {
+    const amt = Number(r.amount || 0);
+    const pd = Number(r.paid || 0);
+    given += amt;
+    received += pd;
+
+    const st = getRecordStatus(r);
+    if (st === 'overdue') {
+      overdue += Math.max(0, amt - pd);
+      overdueCount++;
+    } else if (st === 'pending') {
+      pendingCount++;
+    } else if (st === 'completed') {
+      completedCount++;
+    }
+  });
+
+  const pending = Math.max(0, given - received);
+  return { given, received, pending, overdue, pendingCount, overdueCount, completedCount };
+}
+
+function renderDashboard() {
+  const m = calculateLedgerMetrics();
+  document.getElementById('statTotalUdhaar').textContent = formatCurrency(m.given);
+  document.getElementById('statReceived').textContent = formatCurrency(m.received);
+  document.getElementById('statPending').textContent = formatCurrency(m.pending);
+  document.getElementById('statOverdue').textContent = formatCurrency(m.overdue);
+
+  document.getElementById('badgePendingCount').textContent = m.pendingCount;
+  document.getElementById('badgeOverdueCount').textContent = m.overdueCount;
+  document.getElementById('badgeCompletedCount').textContent = m.completedCount;
+
+  document.getElementById('dashTodayDate').textContent = 'Today: ' + formatDate(new Date().toISOString());
+
+  // Recent 5 entries
+  const listEl = document.getElementById('homeRecordsList');
+  const recent = [...APP.state.records].sort((a,b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 5);
+
+  if (!recent.length) {
+    listEl.innerHTML = `
+      <div class="text-center py-8 text-stone-400">
+        <p class="text-sm font-semibold">No credit records yet</p>
+        <p class="text-xs mt-1">Click "Add Udhaar" to start logging customer credit.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = recent.map(r => renderCustomerRowHTML(r)).join('');
+}
+
+function renderCustomerRowHTML(r) {
+  const st = getRecordStatus(r);
+  const remaining = Math.max(0, Number(r.amount || 0) - Number(r.paid || 0));
+  const badgeColors = {
+    pending: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400',
+    overdue: 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400',
+    completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
+  };
+
+  return `
+    <div onclick="openCustomerDetail('${r.id}')" class="p-3.5 sm:p-4 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-stone-800/50 cursor-pointer transition rounded-xl">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-2xl bg-stone-100 dark:bg-stone-800 text-accent font-extrabold flex items-center justify-center shrink-0 border border-stone-200 dark:border-stone-700">
+          ${(r.name || '?').charAt(0).toUpperCase()}
+        </div>
+        <div class="min-w-0">
+          <p class="font-bold text-sm truncate">${escapeHTML(r.name)}</p>
+          <p class="text-xs text-stone-400 truncate">${escapeHTML(r.items || 'Credit')} · ${formatDate(r.date)}</p>
+        </div>
+      </div>
+      <div class="text-right shrink-0 pl-3">
+        <div class="font-black text-sm">${formatCurrency(remaining)}</div>
+        <span class="inline-block text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${badgeColors[st]} mt-0.5">
+          ${st}
+        </span>
+      </div>
+    </div>`;
+}
+
+function escapeHTML(str) {
+  return String(str || '').replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[tag] || tag));
+}
+
+function saveNewUdhar(e) {
+  e.preventDefault();
+  const name = document.getElementById('udharCustName').value.trim();
+  const phone = document.getElementById('udharCustPhone').value.trim();
+  const address = document.getElementById('udharCustAddress').value.trim();
+  const items = document.getElementById('udharItemsDesc').value.trim();
+  const amount = Number(document.getElementById('udharAmount').value);
+  const returnDate = document.getElementById('udharReturnDate').value;
+
+  if (!name || !items || !amount) {
+    alert('Please enter customer name, items and valid amount.');
+    return;
+  }
+
+  const record = {
+    id: 'u_' + Date.now(),
+    name,
+    phone,
+    address,
+    items,
+    amount,
+    paid: 0,
+    date: getTodayISO(),
+    returnDate: returnDate || '',
+    createdAt: new Date().toISOString()
+  };
+
+  APP.state.records.unshift(record);
+  saveUserData();
+  closeModal('addUdharModal');
+
+  // Reset form
+  document.getElementById('udharCustName').value = '';
+  document.getElementById('udharCustPhone').value = '';
+  document.getElementById('udharCustAddress').value = '';
+  document.getElementById('udharItemsDesc').value = '';
+  document.getElementById('udharAmount').value = '';
+  document.getElementById('udharReturnDate').value = '';
+
+  renderDashboard();
+  renderCustomersList();
+  showToast('Udhaar record added!');
+}
+
+function openCustomerDetail(id) {
+  const r = APP.state.records.find(x => x.id === id);
+  if (!r) return;
+
+  const st = getRecordStatus(r);
+  const remaining = Math.max(0, Number(r.amount) - Number(r.paid || 0));
+  const phoneClean = (r.phone || '').replace(/\D/g, '');
+  const history = (APP.state.payments || []).filter(p => p.recordId === r.id);
+
+  const phoneLink = phoneClean ? `tel:${phoneClean}` : 'javascript:void(0)';
+  const waLink = phoneClean ? `https://wa.me/91${phoneClean.slice(-10)}?text=${encodeURIComponent(`Dear ${r.name}, your pending balance at ${APP.state.profile.name} is ${formatCurrency(remaining)}.`)}` : 'javascript:void(0)';
+
+  document.getElementById('customerDetailBody').innerHTML = `
+    <div class="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-800/60 rounded-2xl border border-stone-200 dark:border-stone-700">
+      <div>
+        <h4 class="text-lg font-black">${escapeHTML(r.name)}</h4>
+        <p class="text-xs text-stone-400">${r.phone ? '📞 ' + escapeHTML(r.phone) : 'No phone registered'}</p>
+        ${r.address ? `<p class="text-xs text-stone-400">📍 ${escapeHTML(r.address)}</p>` : ''}
+      </div>
+      <div class="text-right">
+        <span class="text-xs text-stone-400 block font-semibold">Remaining</span>
+        <span class="text-xl font-black text-rose-600 dark:text-rose-400">${formatCurrency(remaining)}</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 text-xs">
+      <div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
+        <span class="text-stone-400 block">Total Credit</span>
+        <b class="text-sm font-black">${formatCurrency(r.amount)}</b>
+      </div>
+      <div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
+        <span class="text-stone-400 block">Paid So Far</span>
+        <b class="text-sm font-black text-emerald-600">${formatCurrency(r.paid)}</b>
+      </div>
+      <div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
+        <span class="text-stone-400 block">Date Given</span>
+        <b class="font-bold">${formatDate(r.date)}</b>
+      </div>
+      <div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/40 border border-stone-200 dark:border-stone-700">
+        <span class="text-stone-400 block">Return Promise</span>
+        <b class="font-bold ${st === 'overdue' ? 'text-red-500' : ''}">${r.returnDate ? formatDate(r.returnDate) : 'Not specified'}</b>
+      </div>
+    </div>
+
+    <div>
+      <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block mb-1">Items Taken</span>
+      <p class="text-sm p-3 rounded-xl bg-stone-50 dark:bg-stone-800/30 border border-stone-200 dark:border-stone-700">${escapeHTML(r.items)}</p>
+    </div>
+
+    <!-- Quick Call & WhatsApp -->
+    <div class="grid grid-cols-2 gap-2">
+      <a href="${phoneLink}" class="py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 text-center font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-stone-50 dark:hover:bg-stone-800">
+        📞 Call Customer
+      </a>
+      <a href="${waLink}" target="_blank" rel="noopener" class="py-2.5 rounded-xl bg-emerald-600 text-white text-center font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-700">
+        💬 Send WhatsApp
+      </a>
+    </div>
+
+    <!-- Payment History -->
+    <div>
+      <span class="text-xs font-bold text-stone-400 uppercase tracking-wider block mb-2">Repayment History</span>
+      <div class="space-y-1.5 max-h-32 overflow-y-auto">
+        ${history.length ? history.map(h => `
+          <div class="flex justify-between items-center text-xs p-2 rounded-lg bg-stone-50 dark:bg-stone-800/40">
+            <span>${formatDate(h.date)}</span>
+            <span class="font-bold text-emerald-600">+${formatCurrency(h.amount)}</span>
+          </div>`).join('') : '<p class="text-xs text-stone-400 italic">No repayments recorded yet.</p>'}
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex items-center gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+      <button onclick="closeModal('customerDetailModal');openQuickPaymentModal('${r.id}')" class="flex-1 py-2.5 rounded-xl bg-accent text-white font-bold text-xs">
+        + Record Payment
+      </button>
+      ${remaining > 0 ? `
+        <button onclick="markRecordCompleted('${r.id}')" class="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs">
+          ✓ Mark Full Paid
+        </button>` : ''}
+      <button onclick="deleteCustomerRecord('${r.id}')" class="py-2.5 px-3 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold">
+        🗑
+      </button>
+    </div>
+  `;
+
+  openModal('customerDetailModal');
+}
+
+function openQuickPaymentModal(recordId) {
+  openModal('recordPaymentModal');
+  populatePaymentCustDropdown();
+  document.getElementById('paymentCustSelect').value = recordId;
+}
+
+function markRecordCompleted(id) {
+  const r = APP.state.records.find(x => x.id === id);
+  if (!r) return;
+  const rem = Math.max(0, Number(r.amount) - Number(r.paid || 0));
+  r.paid = Number(r.amount);
+
+  APP.state.payments.unshift({
+    id: 'pay_' + Date.now(),
+    recordId: r.id,
+    customer: r.name,
+    amount: rem,
+    date: getTodayISO()
+  });
+
+  saveUserData();
+  closeModal('customerDetailModal');
+  renderDashboard();
+  renderCustomersList();
+  renderPaymentsSection();
+  showToast('Marked as fully completed!');
+}
+
+function deleteCustomerRecord(id) {
+  if (!confirm('Are you sure you want to permanently delete this credit ledger record?')) return;
+  APP.state.records = APP.state.records.filter(x => x.id !== id);
+  APP.state.payments = APP.state.payments.filter(x => x.recordId !== id);
+  saveUserData();
+  closeModal('customerDetailModal');
+  renderDashboard();
+  renderCustomersList();
+  showToast('Record deleted.');
+}
+</script>
+
+<script>
+/* ========================================================
+   BILLING & INVOICING ENGINE
+======================================================== */
+let activeCreatedBill = null;
+
+function renderBills() {
+  const container = document.getElementById('billsContainer');
+  const bills = [...APP.state.salesRecords].reverse();
+
+  if (!bills.length) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-12 text-stone-400 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-6">
+        <span class="text-3xl block mb-2">🧾</span>
+        <p class="font-bold text-sm">No sales invoices generated yet</p>
+        <p class="text-xs mt-1">Click "New Bill" to generate itemized customer slips.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = bills.map(b => `
+    <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono font-bold text-stone-400">${b.billNo}</span>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">PAID</span>
+        </div>
+        <h4 class="font-black text-base mt-1">${escapeHTML(b.customer)}</h4>
+        <p class="text-xs text-stone-400">${formatDate(b.date)} · ${b.items ? b.items.length : 0} items</p>
+      </div>
+      <div class="pt-2 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between">
+        <span class="text-base font-black text-accent">${formatCurrency(b.amount)}</span>
+        <button onclick="viewExistingBill('${b.id}')" class="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 text-xs font-bold transition">
+          View Slip
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadMenusIntoPicker(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select menu category</option>' + 
+    APP.state.menus.map(m => `<option value="${m.id}">${escapeHTML(m.name)}</option>`).join('');
+}
+
+function renderBillCategoryItems(menuId) {
+  const container = document.getElementById('billItemsChecklist');
+  const menu = APP.state.menus.find(m => m.id === menuId);
+  if (!menu || !menu.items || !menu.items.length) {
+    container.innerHTML = '<p class="text-stone-400 text-center py-4">No items inside this category.</p>';
+    updateLiveBillTotal();
+    return;
+  }
+
+  container.innerHTML = menu.items.map((it, idx) => `
+    <div class="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-stone-800/80 border border-stone-200 dark:border-stone-700">
+      <label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0 mr-2">
+        <input type="checkbox" data-idx="${idx}" data-name="${escapeHTML(it.name)}" data-price="${it.price}" onchange="updateLiveBillTotal()" class="bill-item-cb rounded accent-accent">
+        <span class="truncate font-semibold">${escapeHTML(it.name)}</span>
+        <span class="text-stone-400 font-bold ml-auto">${formatCurrency(it.price)}</span>
+      </label>
+      <input type="number" min="1" value="1" data-qty-idx="${idx}" oninput="updateLiveBillTotal()" class="w-14 p-1 text-center font-bold border border-stone-200 dark:border-stone-700 rounded-lg text-xs bg-stone-50 dark:bg-stone-900">
+    </div>
+  `).join('');
+
+  updateLiveBillTotal();
+}
+
+function updateLiveBillTotal() {
+  const cbs = document.querySelectorAll('.bill-item-cb');
+  let total = 0;
+  cbs.forEach(cb => {
+    if (cb.checked) {
+      const idx = cb.dataset.idx;
+      const price = Number(cb.dataset.price || 0);
+      const qtyInput = document.querySelector(`[data-qty-idx="${idx}"]`);
+      const qty = Math.max(1, Number(qtyInput ? qtyInput.value : 1));
+      total += (price * qty);
+    }
+  });
+
+  document.getElementById('billLiveTotalText').textContent = formatCurrency(total);
+}
+
+function generateSaleBill(e) {
+  e.preventDefault();
+  const cust = document.getElementById('billCustName').value.trim();
+  const phone = document.getElementById('billCustPhone').value.trim();
+  const address = document.getElementById('billCustAddress').value.trim();
+  const date = document.getElementById('billDateInput').value || getTodayISO();
+
+  const checked = document.querySelectorAll('.bill-item-cb:checked');
+  if (!checked.length) {
+    alert('Please select at least one item from the menu checklist.');
+    return;
+  }
+
+  const items = [];
+  let total = 0;
+  checked.forEach(cb => {
+    const idx = cb.dataset.idx;
+    const name = cb.dataset.name;
+    const price = Number(cb.dataset.price || 0);
+    const qtyInput = document.querySelector(`[data-qty-idx="${idx}"]`);
+    const qty = Math.max(1, Number(qtyInput ? qtyInput.value : 1));
+    const subtotal = price * qty;
+    total += subtotal;
+    items.push({ name, price, qty, subtotal });
+  });
+
+  const billObj = {
+    id: 'b_' + Date.now(),
+    billNo: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+    customer: cust,
+    phone,
+    address,
+    date,
+    items,
+    amount: total,
+    createdAt: new Date().toISOString()
+  };
+
+  APP.state.salesRecords.push(billObj);
+  saveUserData();
+  closeModal('createBillModal');
+
+  activeCreatedBill = billObj;
+  renderBillPreviewModal(billObj);
+  renderBills();
+  showToast('Sale Invoice generated!');
+}
+
+function viewExistingBill(id) {
+  const b = APP.state.salesRecords.find(x => x.id === id);
+  if (!b) return;
+  activeCreatedBill = b;
+  renderBillPreviewModal(b);
+}
+
+function renderBillPreviewModal(bill) {
+  const card = document.getElementById('billPrintCard');
+  card.innerHTML = `
+    <div class="text-center border-b pb-3 border-stone-200">
+      <h3 class="font-extrabold text-lg tracking-tight text-accent">${escapeHTML(APP.state.profile.name)}</h3>
+      <p class="text-[11px] text-stone-500">Retail & Commercial Sales Slip</p>
+      <div class="flex justify-between text-xs text-stone-500 mt-2 font-mono">
+        <span>${bill.billNo}</span>
+        <span>${formatDate(bill.date)}</span>
+      </div>
+    </div>
+
+    <div class="text-xs">
+      <b>Billed to:</b> ${escapeHTML(bill.customer)}
+      ${bill.phone ? `<br><span class="text-stone-500">Mobile: ${escapeHTML(bill.phone)}</span>` : ''}
+      ${bill.address ? `<br><span class="text-stone-500">Address: ${escapeHTML(bill.address)}</span>` : ''}
+    </div>
+
+    <table class="w-full text-xs text-left border-collapse">
+      <thead>
+        <tr class="border-b border-stone-200 font-bold text-stone-600">
+          <th class="py-1">Item</th>
+          <th class="py-1 text-center">Qty</th>
+          <th class="py-1 text-right">Amt</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-stone-100">
+        ${bill.items.map(it => `
+          <tr>
+            <td class="py-1.5 font-medium">${escapeHTML(it.name)}</td>
+            <td class="py-1.5 text-center">${it.qty}</td>
+            <td class="py-1.5 text-right font-semibold">${formatCurrency(it.subtotal)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="border-t-2 border-stone-900 pt-2 flex justify-between items-center font-black text-base">
+      <span>Total Paid:</span>
+      <span class="text-accent">${formatCurrency(bill.amount)}</span>
+    </div>
+
+    <p class="text-[11px] text-center text-stone-400 italic">Thank you for your visit!</p>
+  `;
+
+  openModal('billPreviewModal');
+}
+
+/* Canvas based PNG generation */
+function downloadBillAsPNG() {
+  if (!activeCreatedBill) return;
+  const b = activeCreatedBill;
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const width = 600;
+  const rowHeight = 32;
+  const baseHeight = 360;
+  const height = baseHeight + (b.items.length * rowHeight);
+
+  canvas.width = width;
+  canvas.height = height;
+
+  // Background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+
+  // Header
+  ctx.fillStyle = '#7b1735';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(APP.state.profile.name, width / 2, 50);
+
+  ctx.fillStyle = '#666666';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('Tax / Retail Receipt', width / 2, 75);
+
+  ctx.strokeStyle = '#e5e5e5';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(40, 95);
+  ctx.lineTo(width - 40, 95);
+  ctx.stroke();
+
+  // Meta
+  ctx.fillStyle = '#222222';
+  ctx.font = '14px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Bill No: ${b.billNo}`, 40, 125);
+  ctx.textAlign = 'right';
+  ctx.fillText(`Date: ${formatDate(b.date)}`, width - 40, 125);
+
+  ctx.textAlign = 'left';
+  ctx.fillText(`Customer: ${b.customer}`, 40, 150);
+  if (b.phone) ctx.fillText(`Phone: ${b.phone}`, 40, 175);
+
+  // Table header
+  const tableY = b.phone ? 210 : 190;
+  ctx.fillStyle = '#f5f5f5';
+  ctx.fillRect(40, tableY, width - 80, 32);
+
+  ctx.fillStyle = '#333333';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('Item Description', 50, tableY + 21);
+  ctx.textAlign = 'center';
+  ctx.fillText('Qty', 380, tableY + 21);
+  ctx.textAlign = 'right';
+  ctx.fillText('Subtotal', width - 50, tableY + 21);
+
+  // Items
+  let curY = tableY + 36;
+  ctx.font = '13px sans-serif';
+  b.items.forEach(it => {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#222222';
+    ctx.fillText(it.name, 50, curY + 20);
+    ctx.textAlign = 'center';
+    ctx.fillText(String(it.qty), 380, curY + 20);
+    ctx.textAlign = 'right';
+    ctx.fillText(`₹${it.subtotal}`, width - 50, curY + 20);
+
+    curY += rowHeight;
+  });
+
+  // Total divider
+  ctx.beginPath();
+  ctx.moveTo(40, curY + 10);
+  ctx.lineTo(width - 40, curY + 10);
+  ctx.stroke();
+
+  ctx.fillStyle = '#7b1735';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Grand Total', 50, curY + 40);
+  ctx.textAlign = 'right';
+  ctx.fillText(formatCurrency(b.amount), width - 50, curY + 40);
+
+  // Download trigger
+  const a = document.createElement('a');
+  a.download = `${b.billNo}_receipt.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  showToast('Receipt PNG downloaded!');
+}
+
+function shareBillOnWhatsApp() {
+  if (!activeCreatedBill) return;
+  const b = activeCreatedBill;
+  const phone = (b.phone || '').replace(/\D/g, '');
+  const lines = b.items.map(i => `• ${i.name} (x${i.qty}) - ₹${i.subtotal}`).join('\n');
+  const text = `*${APP.state.profile.name}* - Invoice ${b.billNo}\nCustomer: ${b.customer}\nDate: ${formatDate(b.date)}\n\n${lines}\n\n*Total: ${formatCurrency(b.amount)}*\nThank you!`;
+
+  const waURL = phone 
+    ? `https://wa.me/91${phone.slice(-10)}?text=${encodeURIComponent(text)}`
+    : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+
+  window.open(waURL, '_blank', 'noopener,noreferrer');
+}
+</script>
+
+<script>
+/* ========================================================
+   CUSTOMERS LEDGER VIEW
+======================================================== */
+function setCustomerFilter(filterType, btn) {
+  APP.customerFilter = filterType;
+  document.querySelectorAll('.customer-filter-btn').forEach(b => {
+    b.className = 'customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 transition whitespace-nowrap';
+  });
+  btn.className = 'customer-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold bg-accent text-white transition whitespace-nowrap';
+  renderCustomersList();
+}
+
+function renderCustomersList() {
+  const query = (document.getElementById('customerSearchInput').value || '').trim().toLowerCase();
+  const container = document.getElementById('customersContainer');
+
+  let filtered = APP.state.records.filter(r => {
+    const st = getRecordStatus(r);
+    const matchesFilter = (APP.customerFilter === 'all') || (st === APP.customerFilter);
+    const matchesQuery = !query || 
+      (r.name && r.name.toLowerCase().includes(query)) ||
+      (r.phone && r.phone.includes(query)) ||
+      (r.items && r.items.toLowerCase().includes(query));
+    return matchesFilter && matchesQuery;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="text-center py-12 text-stone-400">
+        <p class="font-bold text-sm">No ledger entries match</p>
+        <p class="text-xs mt-1">Try another filter or search term.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(r => renderCustomerRowHTML(r)).join('');
+}
+</script>
+
+<script>
+/* ========================================================
+   PAYMENTS & UPI QR SECTION
+======================================================== */
+function renderPaymentsSection() {
+  renderPaymentQRCard();
+  renderPaymentsHistory();
+}
+
+function renderPaymentQRCard() {
+  const box = document.getElementById('paymentQrBox');
+  const qr = APP.state.qr;
+  const theme = qr.theme || '#7b1735';
+
+  if (!qr.upi && !qr.image) {
+    box.innerHTML = `
+      <div class="py-8 text-stone-400">
+        <span class="text-4xl block mb-2">📷</span>
+        <p class="text-xs font-bold">No UPI QR Configured</p>
+        <p class="text-[11px] mt-1">Click "Edit QR" above to show your shop code to customers.</p>
+      </div>`;
+    return;
+  }
+
+  box.style.borderColor = theme;
+  box.innerHTML = `
+    <div class="inline-block p-3 rounded-2xl bg-white shadow-sm border border-stone-200 mb-3" style="border-top: 4px solid ${theme}">
+      ${qr.image ? `<img src="${qr.image}" alt="UPI QR" class="w-48 h-48 object-contain rounded-xl mx-auto">` : `
+        <div class="w-48 h-48 flex items-center justify-center bg-stone-100 rounded-xl text-stone-400 text-xs font-mono font-bold text-center p-3">
+          Scan to pay on<br>${escapeHTML(qr.upi)}
+        </div>
+      `}
+    </div>
+    <h4 class="font-black text-sm">${escapeHTML(qr.name || APP.state.profile.name)}</h4>
+    <p class="text-xs font-mono text-stone-500 mt-0.5">${escapeHTML(qr.upi)}</p>
+  `;
+}
+
+function setPaymentCardTheme(color) {
+  APP.state.qr.theme = color;
+  saveUserData();
+  renderPaymentQRCard();
+  showToast('Payment card theme updated!');
+}
+
+function renderPaymentsHistory() {
+  const container = document.getElementById('paymentListContainer');
+  const list = APP.state.payments || [];
+  document.getElementById('paymentsCountBadge').textContent = list.length + ' records';
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div class="text-center py-12 text-stone-400">
+        <p class="text-xs font-semibold">No repayments recorded</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(p => `
+    <div class="p-3 rounded-2xl bg-stone-50 dark:bg-stone-800/50 flex items-center justify-between border border-stone-200/60 dark:border-stone-700/60">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 font-black flex items-center justify-center text-sm">
+          ₹
+        </div>
+        <div>
+          <b class="text-sm block leading-tight">${escapeHTML(p.customer)}</b>
+          <span class="text-[11px] text-stone-400">${formatDate(p.date)} · Credit Paid</span>
+        </div>
+      </div>
+      <span class="text-base font-black text-emerald-600 dark:text-emerald-400">+${formatCurrency(p.amount)}</span>
+    </div>
+  `).join('');
+}
+
+function populatePaymentCustDropdown() {
+  const sel = document.getElementById('paymentCustSelect');
+  const pending = APP.state.records.filter(r => getRecordStatus(r) !== 'completed');
+
+  if (!pending.length) {
+    sel.innerHTML = '<option value="">No pending customers</option>';
+    return;
+  }
+
+  sel.innerHTML = pending.map(r => {
+    const rem = Math.max(0, Number(r.amount) - Number(r.paid || 0));
+    return `<option value="${r.id}">${escapeHTML(r.name)} (Remaining: ${formatCurrency(rem)})</option>`;
+  }).join('');
+}
+
+function handleSavePayment(e) {
+  e.preventDefault();
+  const rId = document.getElementById('paymentCustSelect').value;
+  const amt = Number(document.getElementById('paymentAmountInput').value);
+  const date = document.getElementById('paymentDateInput').value || getTodayISO();
+
+  const r = APP.state.records.find(x => x.id === rId);
+  if (!r) {
+    alert('Please choose a valid customer.');
+    return;
+  }
+
+  const remaining = Math.max(0, Number(r.amount) - Number(r.paid || 0));
+  if (amt > remaining) {
+    alert(`Payment cannot exceed the pending balance (${formatCurrency(remaining)}).`);
+    return;
+  }
+
+  r.paid = Number(r.paid || 0) + amt;
+  APP.state.payments.unshift({
+    id: 'pay_' + Date.now(),
+    recordId: r.id,
+    customer: r.name,
+    amount: amt,
+    date
+  });
+
+  saveUserData();
+  closeModal('recordPaymentModal');
+  document.getElementById('paymentAmountInput').value = '';
+
+  renderPaymentsSection();
+  renderDashboard();
+  renderCustomersList();
+  showToast('Repayment recorded!');
+}
+
+function handleQRFileSelect(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    APP._tempQRImage = reader.result;
+    const preview = document.getElementById('qrUploadPreview');
+    document.getElementById('qrUploadImgTag').src = reader.result;
+    preview.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSaveQR(e) {
+  e.preventDefault();
+  const name = document.getElementById('qrBizName').value.trim();
+  const upi = document.getElementById('qrUpiId').value.trim();
+
+  APP.state.qr.name = name;
+  APP.state.qr.upi = upi;
+  if (APP._tempQRImage) {
+    APP.state.qr.image = APP._tempQRImage;
+    APP._tempQRImage = null;
+  }
+
+  saveUserData();
+  closeModal('qrSetupModal');
+  renderPaymentQRCard();
+  showToast('UPI QR Details updated!');
+}
+</script>
+
+<script>
+/* ========================================================
+   REPORTS & ANALYTICS VISUALIZATION
+======================================================== */
+function setReportPeriod(p, btn) {
+  APP.reportPeriod = p;
+  document.querySelectorAll('.report-period-btn').forEach(b => {
+    b.className = 'report-period-btn px-4 py-2 rounded-lg text-stone-500 hover:text-stone-900 dark:hover:text-white transition';
+  });
+  btn.className = 'report-period-btn px-4 py-2 rounded-lg bg-white dark:bg-stone-700 shadow-sm text-accent transition font-bold';
+  renderReports();
+}
+
+function renderReports() {
+  const period = APP.reportPeriod;
+  const now = new Date();
+  const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
+  document.getElementById('chartPeriodBadge').textContent = 'This ' + periodLabel;
+
+  // Filter sales and payments by period
+  const filterByDate = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    if (period === 'day') {
+      return d.toDateString() === now.toDateString();
+    } else if (period === 'month') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } else {
+      return d.getFullYear() === now.getFullYear();
+    }
+  };
+
+  const periodSales = APP.state.salesRecords.filter(s => filterByDate(s.date));
+  const totalSalesVal = periodSales.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+  const profitEst = totalSalesVal * 0.20;
+
+  const periodPayments = APP.state.payments.filter(p => filterByDate(p.date));
+  const totalRecovered = periodPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+  document.getElementById('reportSalesVal').textContent = formatCurrency(totalSalesVal);
+  document.getElementById('reportSalesCount').textContent = `${periodSales.length} invoices generated`;
+  document.getElementById('reportProfitVal').textContent = formatCurrency(profitEst);
+  document.getElementById('reportRecoveredVal').textContent = formatCurrency(totalRecovered);
+
+  const recoveryPct = totalSalesVal ? Math.round((totalRecovered / totalSalesVal) * 100) : 0;
+  document.getElementById('reportRecoveredPercent').textContent = `${recoveryPct}% recovery against volume`;
+
+  // Render Bar Charts
+  const chartEl = document.getElementById('salesChartBars');
+  let intervals = [];
+
+  if (period === 'day') {
+    // 8 3-hour blocks
+    for (let h = 0; h < 24; h += 3) {
+      intervals.push({ label: `${h}:00`, total: 0 });
+    }
+    periodSales.forEach(s => {
+      const h = new Date(s.createdAt || s.date).getHours();
+      const idx = Math.min(7, Math.floor(h / 3));
+      intervals[idx].total += Number(s.amount || 0);
+    });
+  } else if (period === 'month') {
+    // 4 weeks of the month
+    intervals = [
+      { label: 'Wk 1', total: 0 },
+      { label: 'Wk 2', total: 0 },
+      { label: 'Wk 3', total: 0 },
+      { label: 'Wk 4', total: 0 }
+    ];
+    periodSales.forEach(s => {
+      const day = new Date(s.date).getDate();
+      const idx = Math.min(3, Math.floor((day - 1) / 7));
+      intervals[idx].total += Number(s.amount || 0);
+    });
+  } else {
+    // 12 Months
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    intervals = months.map(m => ({ label: m, total: 0 }));
+    periodSales.forEach(s => {
+      const m = new Date(s.date).getMonth();
+      intervals[m].total += Number(s.amount || 0);
+    });
+  }
+
+  const maxVal = Math.max(...intervals.map(i => i.total), 100);
+
+  chartEl.innerHTML = intervals.map(item => {
+    const heightPercent = Math.max(8, Math.round((item.total / maxVal) * 100));
+    return `
+      <div class="flex-1 flex flex-col items-center h-full justify-end group">
+        <span class="text-[10px] font-bold text-stone-400 group-hover:text-accent mb-1 truncate transition">
+          ${item.total > 0 ? '₹' + Math.round(item.total) : ''}
+        </span>
+        <div style="height: ${heightPercent}%" class="w-full max-w-[36px] bg-accent/80 hover:bg-accent rounded-t-lg transition-all duration-300"></div>
+        <span class="text-[10px] font-semibold text-stone-500 mt-2 block">${item.label}</span>
+      </div>`;
+  }).join('');
+}
+</script>
+
+<script>
+/* ========================================================
+   LISTS & MENUS MANAGEMENT
+======================================================== */
+function renderListsAndMenus() {
+  renderMenusList();
+  renderChecklists();
+}
+
+function renderMenusList() {
+  const container = document.getElementById('menusContainer');
+  const menus = APP.state.menus || [];
+
+  if (!menus.length) {
+    container.innerHTML = `
+      <div class="col-span-full p-6 text-center text-stone-400 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl">
+        <p class="text-xs font-bold">No menus added</p>
+        <p class="text-[11px] mt-1">Add items with prices for one-click billing.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = menus.map(m => `
+    <div class="p-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-sm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="font-extrabold text-sm">${escapeHTML(m.name)}</h4>
+          <div class="flex items-center gap-1">
+            <button onclick="editMenuModal('${m.id}')" class="p-1 hover:text-accent text-xs">✏️</button>
+            <button onclick="deleteMenuCategory('${m.id}')" class="p-1 hover:text-red-500 text-xs">🗑</button>
+          </div>
+        </div>
+        <div class="space-y-1 text-xs">
+          ${(m.items || []).slice(0, 4).map(it => `
+            <div class="flex justify-between text-stone-600 dark:text-stone-300">
+              <span class="truncate">${escapeHTML(it.name)}</span>
+              <span class="font-bold">${formatCurrency(it.price)}</span>
+            </div>
+          `).join('')}
+          ${(m.items || []).length > 4 ? `<p class="text-[10px] text-stone-400 italic">+${m.items.length - 4} more items</p>` : ''}
+        </div>
+      </div>
+      <div class="pt-2 mt-3 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400">
+        ${m.items ? m.items.length : 0} items configured
+      </div>
+    </div>
+  `).join('');
+}
+
+function appendMenuItemRow(name = '', price = '') {
+  const list = document.getElementById('menuItemsRowsList');
+  const div = document.createElement('div');
+  div.className = 'flex items-center gap-2 menu-item-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Item name" value="${escapeHTML(name)}" required class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs item-name-val">
+    <input type="number" placeholder="Price" value="${price}" step="0.01" required class="w-24 p-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold item-price-val">
+    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-stone-400 hover:text-red-500 font-bold text-xs">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function editMenuModal(id) {
+  const m = APP.state.menus.find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('menuEditId').value = m.id;
+  document.getElementById('menuCatName').value = m.name;
+  document.getElementById('menuItemsRowsList').innerHTML = '';
+  (m.items || []).forEach(it => appendMenuItemRow(it.name, it.price));
+  openModal('menuModal');
+}
+
+function handleSaveMenu(e) {
+  e.preventDefault();
+  const id = document.getElementById('menuEditId').value;
+  const name = document.getElementById('menuCatName').value.trim();
+
+  const rows = document.querySelectorAll('.menu-item-row');
+  const items = [];
+  rows.forEach(r => {
+    const n = r.querySelector('.item-name-val').value.trim();
+    const p = Number(r.querySelector('.item-price-val').value);
+    if (n && p >= 0) items.push({ name: n, price: p });
+  });
+
+  if (!name || !items.length) {
+    alert('Please enter a menu name and at least one item.');
+    return;
+  }
+
+  if (id) {
+    const m = APP.state.menus.find(x => x.id === id);
+    if (m) { m.name = name; m.items = items; }
+  } else {
+    APP.state.menus.push({ id: 'm_' + Date.now(), name, items });
+  }
+
+  saveUserData();
+  closeModal('menuModal');
+  document.getElementById('menuEditId').value = '';
+  document.getElementById('menuCatName').value = '';
+  document.getElementById('menuItemsRowsList').innerHTML = '';
+
+  renderMenusList();
+  showToast('Menu saved!');
+}
+
+function deleteMenuCategory(id) {
+  if (!confirm('Delete this menu category?')) return;
+  APP.state.menus = APP.state.menus.filter(x => x.id !== id);
+  saveUserData();
+  renderMenusList();
+  showToast('Menu deleted.');
+}
+
+/* Checklists */
+function renderChecklists() {
+  const container = document.getElementById('listsContainer');
+  const lists = APP.state.lists || [];
+
+  if (!lists.length) {
+    container.innerHTML = `
+      <div class="col-span-full p-6 text-center text-stone-400 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl">
+        <p class="text-xs font-bold">No checklists added</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = lists.map(l => `
+    <div class="p-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-sm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-extrabold text-sm">${escapeHTML(l.title)}</h4>
+          <button onclick="deleteChecklist('${l.id}')" class="text-stone-400 hover:text-red-500 text-xs">🗑</button>
+        </div>
+        <div class="space-y-1.5 text-xs">
+          ${(l.items || []).map((it, idx) => `
+            <label class="flex items-center gap-2 cursor-pointer ${it.done ? 'line-through text-stone-400' : ''}">
+              <input type="checkbox" ${it.done ? 'checked' : ''} onchange="toggleChecklistItem('${l.id}', ${idx})" class="rounded accent-accent">
+              <span>${escapeHTML(it.text)}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+      <div class="pt-2 mt-3 border-t border-stone-100 dark:border-stone-800 text-[11px] text-stone-400">
+        ${l.items ? l.items.filter(i => i.done).length : 0} of ${l.items ? l.items.length : 0} done
+      </div>
+    </div>
+  `).join('');
+}
+
+function appendChecklistItemRow(text = '') {
+  const list = document.getElementById('checklistItemsRows');
+  const div = document.createElement('div');
+  div.className = 'flex items-center gap-2 checklist-item-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Task / Item name" value="${escapeHTML(text)}" required class="flex-1 p-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs item-task-val">
+    <button type="button" onclick="this.parentElement.remove()" class="p-2 text-stone-400 hover:text-red-500 font-bold text-xs">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function handleSaveList(e) {
+  e.preventDefault();
+  const title = document.getElementById('listTitleInput').value.trim();
+  const rows = document.querySelectorAll('.checklist-item-row');
+  const items = [];
+  rows.forEach(r => {
+    const val = r.querySelector('.item-task-val').value.trim();
+    if (val) items.push({ text: val, done: false });
+  });
+
+  if (!title || !items.length) {
+    alert('Please enter a list title and at least one item.');
+    return;
+  }
+
+  APP.state.lists.unshift({
+    id: 'l_' + Date.now(),
+    title,
+    items
+  });
+
+  saveUserData();
+  closeModal('listModal');
+  document.getElementById('listTitleInput').value = '';
+  document.getElementById('checklistItemsRows').innerHTML = '';
+  renderChecklists();
+  showToast('List created!');
+}
+
+function toggleChecklistItem(listId, idx) {
+  const l = APP.state.lists.find(x => x.id === listId);
+  if (!l || !l.items[idx]) return;
+  l.items[idx].done = !l.items[idx].done;
+  saveUserData();
+  renderChecklists();
+}
+
+function deleteChecklist(id) {
+  if (!confirm('Delete this checklist?')) return;
+  APP.state.lists = APP.state.lists.filter(x => x.id !== id);
+  saveUserData();
+  renderChecklists();
+}
+
+/* ========================================================
+   SETTINGS, PROFILE & EXPORT/IMPORT
+======================================================= */
+function applyUserPreferences() {
+  const s = APP.state.settings || {};
+  // Dark mode
+  toggleDarkMode(s.darkMode, false);
+
+  // Accent
+  if (s.accent) changeThemeAccent(s.accent, false);
+
+  // Font size
+  if (s.fontSize) adjustFontSize(s.fontSize, false);
+
+  // Language
+  if (s.lang) setLanguage(s.lang, false);
+
+  updateSettingsUI();
+}
+
+function updateSettingsUI() {
+  const p = APP.state.profile;
+  document.getElementById('homeProfileName').textContent = p.name;
+  document.getElementById('sidebarShopBadge').textContent = p.name;
+  document.getElementById('desktopUserName').textContent = p.name;
+  document.getElementById('desktopUserHandle').textContent = '@' + APP.currentUser;
+  document.getElementById('desktopUserAvatar').textContent = p.avatar || p.name.charAt(0);
+
+  document.getElementById('settingsProfileName').textContent = p.name;
+  document.getElementById('settingsProfileHandle').textContent = '@' + APP.currentUser;
+  document.getElementById('settingsProfilePic').textContent = p.avatar || '👤';
+
+  document.getElementById('themeDarkToggle').checked = !!APP.state.settings.darkMode;
+  document.getElementById('fontSizeSelect').value = APP.state.settings.fontSize || '16';
+
+  const l = APP.state.lock;
+  document.getElementById('appLockStatusText').textContent = 
+    (l && l.type !== 'off') ? `${l.type.toUpperCase()} PIN Protected` : 'PIN protection is off';
+
+  document.getElementById('sessionAccountLabel').textContent = `Logged in as @${APP.currentUser}`;
+}
+
+function handleSaveProfile(e) {
+  e.preventDefault();
+  const name = document.getElementById('profileStoreNameInput').value.trim();
+  const avatar = document.getElementById('profileAvatarInput').value.trim() || name.charAt(0);
+
+  APP.state.profile.name = name;
+  APP.state.profile.avatar = avatar;
+  saveUserData();
+  closeModal('profileModal');
+  updateSettingsUI();
+  showToast('Profile updated!');
+}
+
+function toggleDarkMode(isDark, save = true) {
+  document.documentElement.classList.toggle('dark', isDark);
+  if (save) {
+    APP.state.settings.darkMode = isDark;
+    saveUserData();
+  }
+}
+
+function changeThemeAccent(color, save = true) {
+  document.documentElement.style.setProperty('--color-accent', color);
+  if (save) {
+    APP.state.settings.accent = color;
+    saveUserData();
+    showToast('Theme accent saved!');
+  }
+}
+
+function adjustFontSize(px, save = true) {
+  document.documentElement.style.setProperty('--app-font-size', px + 'px');
+  if (save) {
+    APP.state.settings.fontSize = px;
+    saveUserData();
+  }
+}
+
+function setLanguage(langCode, save = true) {
+  APP.state.settings.lang = langCode;
+  const dict = I18N[langCode] || I18N.en;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (dict[k]) el.textContent = dict[k];
+  });
+
+  const opt = LANG_OPTIONS.find(o => o.code === langCode);
+  document.getElementById('currentLangLabel').textContent = opt ? opt.name : 'English';
+
+  if (save) {
+    saveUserData();
+    closeModal('languageModal');
+    showToast('Language updated!');
+  }
+}
+
+function renderLanguagesListModal() {
+  const grid = document.getElementById('languageGridList');
+  grid.innerHTML = LANG_OPTIONS.map(o => `
+    <button onclick="setLanguage('${o.code}')" class="p-3 rounded-xl border border-stone-200 dark:border-stone-700 text-left font-bold text-xs hover:border-accent hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+      ${o.name}
+    </button>
+  `).join('');
+}
+
+function exportJSONBackup() {
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(APP.state, null, 2));
+  const a = document.createElement('a');
+  a.setAttribute('href', dataStr);
+  a.setAttribute('download', `udhar_backup_${APP.currentUser}_${getTodayISO()}.json`);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast('JSON backup exported!');
+}
+
+function handleImportJSON(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      const parsed = JSON.parse(evt.target.result);
+      if (!parsed.records && !parsed.salesRecords) {
+        alert('Invalid backup structure.');
+        return;
+      }
+      APP.state = parsed;
+      saveUserData();
+      applyUserPreferences();
+      renderAllViews();
+      showToast('Backup restored successfully!');
+    } catch {
+      alert('Failed to parse backup JSON file.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearCurrentLedgerData() {
+  if (!confirm('Clear all credit, bill and payment records for this account? This cannot be undone.')) return;
+  APP.state.records = [];
+  APP.state.payments = [];
+  APP.state.salesRecords = [];
+  saveUserData();
+  renderAllViews();
+  showToast('Ledger data cleared.');
+}
+
+function renderAllViews() {
+  renderDashboard();
+  renderBills();
+  renderCustomersList();
+  renderPaymentsSection();
+  renderReports();
+  renderListsAndMenus();
+  populatePaymentCustDropdown();
+  loadMenusIntoPicker('billMenuSelect');
+  loadMenusIntoPicker('udharMenuSelect');
+  renderLanguagesListModal();
+}
+
+/* ========================================================
+   INITIALIZATION
+======================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+  // Set default invoice dates
+  document.getElementById('billDateInput').value = getTodayISO();
+  document.getElementById('paymentDateInput').value = getTodayISO();
+
+  // Add initial item rows to Menu & List forms
+  appendMenuItemRow('Example Item', '100');
+  appendChecklistItemRow('First task');
+
+  const active = localStorage.getItem('udhar_active_user');
+  const db = getAccountsDB();
+  if (active && db[active]) {
+    loginUser(active);
+  } else {
+    document.getElementById('authScreen').classList.remove('hidden');
+    switchAuthTab('login');
+  }
+});
+</script>
+
+</body>
+</html>
